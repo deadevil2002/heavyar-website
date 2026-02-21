@@ -404,6 +404,8 @@ body[dir="ltr"] {
 /* Responsive */
 @media (max-width: 768px) {
   .hero {
+    background-size: contain;
+    background-position: center top;
     min-height: 400px;
     padding: 6rem 0 3rem;
   }
