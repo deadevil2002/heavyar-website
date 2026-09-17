@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-ar="حذف حساب Heavyar" data-en="Delete your Heavyar account">حذف حساب Heavyar</title>
+  <meta name="description" content="اطلب حذف حساب Heavyar بأمان بعد تسجيل الدخول." data-ar="اطلب حذف حساب Heavyar بأمان بعد تسجيل الدخول." data-en="Request deletion of your Heavyar account securely after signing in.">
+  <link rel="icon" type="image/png" href="assets/images/logo.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="account-page">
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="navbar-brand">
+        <img src="assets/images/logo.png" alt="Heavyar Logo" class="navbar-logo">
+        <span class="navbar-title">Heavyar</span>
+      </a>
+      <div class="language-toggle" aria-label="Language">
+        <button class="lang-btn active" data-lang="ar">العربية</button>
+        <button class="lang-btn" data-lang="en">English</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="account-main">
+    <section class="account-card" aria-labelledby="page-title">
+      <p class="account-eyebrow" data-ar="إدارة الحساب" data-en="Account management">إدارة الحساب</p>
+      <h1 id="page-title" data-ar="طلب حذف حسابك" data-en="Request account deletion">طلب حذف حسابك</h1>
+      <p class="account-intro" data-ar="سجّل الدخول أولاً، ثم أرسل طلب حذف حساب Heavyar من خلال الخادم الموثوق. لا نطلب منك إدخال رقم المستخدم أو البريد لإثبات الملكية." data-en="Sign in first, then submit your Heavyar account deletion request through our trusted server. We never use a user ID or email address as proof of ownership.">سجّل الدخول أولاً، ثم أرسل طلب حذف حساب Heavyar من خلال الخادم الموثوق. لا نطلب منك إدخال رقم المستخدم أو البريد لإثبات الملكية.</p>
+
+      <div id="status" class="account-status" role="status" aria-live="polite" hidden></div>
+
+      <form id="sign-in-form" class="account-form">
+        <h2 data-ar="تسجيل الدخول" data-en="Sign in">تسجيل الدخول</h2>
+        <label for="email" data-ar="البريد الإلكتروني" data-en="Email address">البريد الإلكتروني</label>
+        <input id="email" name="email" type="email" autocomplete="email" required data-ar="name@example.com" data-en="name@example.com" placeholder="name@example.com">
+        <label for="password" data-ar="كلمة المرور" data-en="Password">كلمة المرور</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required data-ar="أدخل كلمة المرور" data-en="Enter your password" placeholder="أدخل كلمة المرور">
+        <button class="btn btn-primary account-submit" type="submit" data-ar="تسجيل الدخول" data-en="Sign in">تسجيل الدخول</button>
+        <button id="reset-password" class="account-link-button" type="button" data-ar="نسيت كلمة المرور؟ أرسل رابط إعادة التعيين" data-en="Forgot your password? Send a reset link">نسيت كلمة المرور؟ أرسل رابط إعادة التعيين</button>
+      </form>
+
+      <section id="signed-in-panel" class="signed-in-panel" hidden>
+        <p class="signed-in-label" data-ar="تم تسجيل الدخول بالحساب:" data-en="Signed in as:">تم تسجيل الدخول بالحساب:</p>
+        <strong id="signed-in-email"></strong>
+        <form id="delete-form" class="account-form">
+          <h2 data-ar="تأكيد حذف الحساب" data-en="Confirm account deletion">تأكيد حذف الحساب</h2>
+          <p class="warning-copy" data-ar="سيؤدي الطلب إلى قفل الحساب وبدء عملية الحذف. قد تحتفظ Heavyar بسجلات مالية أو قانونية عندما يفرض النظام ذلك. لا يمكن التراجع بعد بدء المعالجة." data-en="This request locks the account and starts the deletion process. Heavyar may retain financial or legal records where required. The process cannot be undone after it begins.">سيؤدي الطلب إلى قفل الحساب وبدء عملية الحذف. قد تحتفظ Heavyar بسجلات مالية أو قانونية عندما يفرض النظام ذلك. لا يمكن التراجع بعد بدء المعالجة.</p>
+          <label class="confirmation-row">
+            <input id="confirm-understood" type="checkbox" required>
+            <span data-ar="أفهم ما سيحدث وأرغب في المتابعة." data-en="I understand what will happen and want to continue.">أفهم ما سيحدث وأرغب في المتابعة.</span>
+          </label>
+          <label for="confirmation" data-ar="اكتب DELETE_MY_ACCOUNT للتأكيد" data-en="Type DELETE_MY_ACCOUNT to confirm">اكتب DELETE_MY_ACCOUNT للتأكيد</label>
+          <input id="confirmation" type="text" autocomplete="off" autocapitalize="characters" required placeholder="DELETE_MY_ACCOUNT">
+          <button class="btn btn-danger account-submit" type="submit" data-ar="إرسال طلب الحذف" data-en="Submit deletion request">إرسال طلب الحذف</button>
+          <button id="sign-out" class="account-link-button" type="button" data-ar="تسجيل الخروج" data-en="Sign out">تسجيل الخروج</button>
+        </form>
+      </section>
+
+      <p class="account-back"><a href="privacy.html" data-ar="اقرأ سياسة الخصوصية" data-en="Read the privacy policy">اقرأ سياسة الخصوصية</a> · <a href="index.html" data-ar="العودة إلى Heavyar" data-en="Back to Heavyar">العودة إلى Heavyar</a></p>
+    </section>
+  </main>
+
+  <footer class="footer account-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <a href="privacy.html" data-ar="الخصوصية" data-en="Privacy">الخصوصية</a>
+        <span> · </span>
+        <a href="terms.html" data-ar="الشروط" data-en="Terms">الشروط</a>
+        <span> · </span>
+        <a href="delete-account.html" data-ar="حذف الحساب" data-en="Delete account">حذف الحساب</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script type="module" src="delete-account.js"></script>
+</body>
+</html>

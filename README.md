@@ -15,6 +15,8 @@ heavyar-complete/
 ├── script.js                  # Language switching
 ├── terms.html                 # Terms of service
 ├── privacy.html               # Privacy policy
+├── delete-account.html        # Authenticated account deletion
+├── delete-account.js          # Firebase Web Auth deletion flow
 ├── refund.html                # Refund policy
 ├── safety.html                # Safety guidelines
 ├── providers-terms.html       # Provider terms
@@ -29,8 +31,8 @@ heavyar-complete/
 └── README.md                  # This file
 ```
 
-**Total Files**: 15
-**Total Pages**: 8 (1 homepage + 7 legal pages)
+**Total Files**: 17
+**Total Pages**: 9 (1 homepage + 8 legal pages)
 
 ---
 
@@ -52,7 +54,15 @@ heavyar-complete/
 - ✅ Links to all other pages
 - ✅ Responsive layout
 
-### Footer (all 8 pages):
+### Account deletion (delete-account.html):
+- ✅ Arabic/English language toggle with RTL/LTR support
+- ✅ Firebase Web Auth email/password sign-in
+- ✅ Firebase password-reset email with generic account-safe messaging
+- ✅ Authenticated Worker deletion request using `DELETE_MY_ACCOUNT`
+- ✅ Explicit confirmation, safe errors, and session cleanup
+- ✅ No UID/email accepted as proof and no server secrets in the site
+
+### Footer (all 9 pages):
 - ✅ Certificate badge (clickable)
 - ✅ CR number: 7050191290
 - ✅ Verification link to Ministry of Commerce
@@ -76,7 +86,7 @@ heavyar-complete/
    - Click "Upload assets"
 
 3. **Upload Files**
-   - Upload ALL files and folders from this package
+    - Upload ALL files and folders from this package, including `delete-account.html` and `delete-account.js`
    - Maintain the folder structure (especially assets/)
 
 4. **Build Settings**
