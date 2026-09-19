@@ -305,5 +305,5 @@ test('production blocker aliases, certificate MIME and English deletion fields a
   const certificate = await handleRequest(new Request('https://heavyar.com/assets/cert/sbc-certificate.png'), {
     ASSETS: { fetch: async () => new Response('jpeg', { headers: { 'Content-Type': 'image/png' } }) },
   }, { fetcher: unpublished });
-  assert.equal(certificate.headers.get('content-type'), 'image/jpeg');
+  assert.equal(certificate.headers.get('content-type'), 'image/png');
 });

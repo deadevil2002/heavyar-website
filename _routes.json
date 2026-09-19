@@ -1,13 +1,5 @@
 {
   "version": 1,
   "include": ["/*"],
-  "exclude": [
-    "/assets/icons/*",
-    "/assets/images/*",
-    "/assets/social/*",
-    "/assets/site.css",
-    "/assets/site.js",
-    "/delete-account.js",
-    "/site.webmanifest"
-  ]
+  "exclude": ["/assets/*", "/delete-account.js", "/site.webmanifest"]
 }

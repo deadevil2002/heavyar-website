@@ -159,9 +159,7 @@ export async function handleRequest(request, env = {}, options = {}) {
   if (safeStatic && env.ASSETS?.fetch) {
     const assetRequest = assetPath === pathname ? request : new Request(new URL(assetPath, request.url), request);
     const response = await env.ASSETS.fetch(assetRequest);
-    const headers = { ...Object.fromEntries(response.headers), ...securityHeaders };
-    if (assetPath === '/assets/cert/sbc-certificate.png') headers['content-type'] = 'image/jpeg';
-    return new Response(request.method === 'HEAD' ? null : response.body, { status: response.status, headers });
+    return new Response(request.method === 'HEAD' ? null : response.body, { status: response.status, headers: { ...Object.fromEntries(response.headers), ...securityHeaders } });
   }
   if (safeStatic && options.asset) {
     const response = await options.asset(assetPath, request);
