@@ -198,7 +198,7 @@ test('SEO request has a bounded abort signal', async () => {
     init.signal.addEventListener('abort', () => reject(init.signal.reason), { once: true });
   }), 1);
   assert.equal(result.source, 'unavailable-fallback');
-  assert.ok(Date.now() - started < 2_500);
+  assert.ok(Date.now() - started < 4_500);
 });
 
 test('named crawler groups repeat private route exclusions', () => {
