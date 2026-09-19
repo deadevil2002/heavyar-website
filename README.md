@@ -1,5 +1,44 @@
 # Heavyar Landing Page - Cloudflare Pages Ready
 
+## Public website integration (2026-09-19)
+
+The current implementation uses the existing **heavyar-website** Cloudflare Pages
+project and `heavyar.com`. The older `--project-name=heavyar` example below is
+historical; do not create or deploy another project using that name.
+
+- Arabic `/` and English `/en/` are rendered by root `_worker.js` in Pages
+  advanced mode. The runtime import graph has no Node dependencies.
+- The existing project uses an empty build command and repository-root output.
+  Root deployment remains supported; `npm run build` also prepares `dist/`.
+- `npm test` runs the website's Node regression tests.
+- `node src/dev.mjs` runs a local preview using `PORT` and optional `BASE_PATH`.
+  Development-only fixtures never activate production registration.
+- Initial HTML consumes only the published Heavyar SEO API, with ETag caching,
+  bounded fetch time, and an explicitly identified fallback. This website does
+  not edit or publish SEO configuration.
+- Registration requests call the authoritative Worker directly. The exact
+  `https://heavyar.com` CORS change must be released before activation.
+- Original legal pages and `delete-account.js` remain unchanged. Immutable copies
+  of legal HTML avoid asset redirect loops; source hashes guard preservation.
+  English legal routes explain that the controlling preserved text is Arabic.
+- The new hero is generated illustrative artwork, not a real equipment listing.
+  Site icons and the social image reuse the existing approved brand artwork.
+- Root legacy HTML routes remain available, with clean contact, refund, safety,
+  provider-terms and FAQ aliases.
+
+### Production release gate
+
+`main` is connected to automatic Cloudflare Pages production deployment.
+Pushing website `main` **publishes**; treat it as a release action.
+Use only the existing project, preserve DNS and bindings, and release the
+matching backend CORS update first. Keep Early Access OFF and campaign sending
+locked. Verify live initial HTML, legal/deletion routes, robots, sitemap, icons,
+and API origin behavior after publication. Enabling registration requires a
+separate explicit owner authorization.
+
+The integration does not authorize payment activation, native builds, dependency
+upgrades, store submissions, or changes to the legacy 10% legal language.
+
 ## 📦 Complete Deployment Package
 
 This package contains everything you need to deploy the Heavyar landing page to Cloudflare Pages.
