@@ -145,7 +145,7 @@ export async function getSeo(fetcher = fetch, now = Date.now()) {
   if (state.pending) return state.pending;
   state.pending = (async () => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(new Error('SEO_TIMEOUT')), 4_000);
+    const timeout = setTimeout(() => controller.abort(new Error('SEO_TIMEOUT')), 2_000);
     try {
       const headers = state.etag ? { 'If-None-Match': state.etag } : {};
       const response = await fetcher(SEO_ENDPOINT, { headers, signal: controller.signal });
