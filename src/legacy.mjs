@@ -22,6 +22,13 @@ function localize(html, locale) {
     if (!value) return all;
     const safeAttrs = attrs.replace(/\sdata-(?:ar|en)=(?:"[^"]*"|'[^']*')/gi, '');
     return `<${tag}${safeAttrs}>${escapeHtml(value)}</${tag}>`;
+  }).replace(/<(input|textarea)([^>]*\bdata-ar=(?:"[^"]*"|'[^']*')[^>]*\bdata-en=(?:"[^"]*"|'[^']*')[^>]*)>/gi, (all, tag, attrs) => {
+    const value = attr(attrs, `data-${key}`);
+    let safeAttrs = attrs.replace(/\sdata-(?:ar|en)=(?:"[^"]*"|'[^']*')/gi, '');
+    safeAttrs = /\bplaceholder=(["'])[\s\S]*?\1/i.test(safeAttrs)
+      ? safeAttrs.replace(/\bplaceholder=(["'])[\s\S]*?\1/i, `placeholder="${escapeHtml(value)}"`)
+      : `${safeAttrs} placeholder="${escapeHtml(value)}"`;
+    return `<${tag}${safeAttrs}>`;
   }).replace(/\sdata-(?:ar|en)=(?:"[^"]*"|'[^']*')/gi, '');
 }
 
@@ -49,6 +56,7 @@ export async function renderLegacy(key, locale, source) {
     const documentName = key === 'privacy' ? 'Privacy Policy' : 'Terms of Service';
     return `<p class="legal-language-note">The preserved ${documentName} is currently available in Arabic. The original text appears below without alteration.</p><div lang="ar" dir="rtl">${localized}</div>`;
   }
+  if (locale === 'en' && key === 'account-deletion') return `<div lang="en" dir="ltr">${localized}</div>`;
   return localized;
 }
 

@@ -22,7 +22,7 @@ const PRESERVED_DOCUMENT_ROUTES = {
 };
 const text = (body, status = 200, type = 'text/plain; charset=utf-8', extra = {}) => new Response(body, { status, headers: { 'Content-Type': type, 'X-Content-Type-Options': 'nosniff', ...extra } });
 const securityHeaders = {
-  'Content-Security-Policy': "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; frame-src https://heavyar-app.firebaseapp.com; form-action 'self'; script-src 'self' https://www.gstatic.com; connect-src 'self' https://heavyar-api.heavyar-official.workers.dev https://*.googleapis.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com",
+  'Content-Security-Policy': "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; frame-src https://heavyar-app.firebaseapp.com; form-action 'self'; script-src 'self' https://www.gstatic.com https://static.cloudflareinsights.com; connect-src 'self' https://heavyar-api.heavyar-official.workers.dev https://*.googleapis.com https://cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com",
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   'X-Frame-Options': 'DENY',
@@ -119,7 +119,13 @@ export async function handleRequest(request, env = {}, options = {}) {
     return text(body, 200, pathname.endsWith('.xml') ? 'application/xml; charset=utf-8' : 'text/plain; charset=utf-8', { 'Cache-Control': 'public, max-age=60' });
   }
   const legacy = LEGACY_ROUTES[pathname];
-  const cleanPath = legacy || pathname;
+  const legalAlias = {
+    '/privacy-policy': '/privacy',
+    '/en/privacy-policy': '/en/privacy',
+    '/terms-of-service': '/terms',
+    '/en/terms-of-service': '/en/terms',
+  }[pathname];
+  const cleanPath = legalAlias || legacy || pathname;
   const route = ROUTES[cleanPath] || (cleanPath.endsWith('/') ? ROUTES[cleanPath.slice(0, -1)] : ROUTES[`${cleanPath}/`]);
   if (route) {
     const [key, locale] = route;
@@ -153,7 +159,9 @@ export async function handleRequest(request, env = {}, options = {}) {
   if (safeStatic && env.ASSETS?.fetch) {
     const assetRequest = assetPath === pathname ? request : new Request(new URL(assetPath, request.url), request);
     const response = await env.ASSETS.fetch(assetRequest);
-    return new Response(request.method === 'HEAD' ? null : response.body, { status: response.status, headers: { ...Object.fromEntries(response.headers), ...securityHeaders } });
+    const headers = { ...Object.fromEntries(response.headers), ...securityHeaders };
+    if (assetPath === '/assets/cert/sbc-certificate.png') headers['content-type'] = 'image/jpeg';
+    return new Response(request.method === 'HEAD' ? null : response.body, { status: response.status, headers });
   }
   if (safeStatic && options.asset) {
     const response = await options.asset(assetPath, request);

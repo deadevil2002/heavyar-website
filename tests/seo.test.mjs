@@ -280,3 +280,30 @@ test('development CSP permits the Replit preview frame without weakening product
   assert.match(production.headers.get('content-security-policy'), /frame-ancestors 'none'/);
   assert.equal(production.headers.get('x-frame-options'), 'DENY');
 });
+
+test('production blocker aliases, certificate MIME and English deletion fields are corrected', async () => {
+  const unpublished = async () => Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
+  for (const [alias, canonical] of [
+    ['/privacy-policy', 'https://heavyar.com/privacy'],
+    ['/en/privacy-policy', 'https://heavyar.com/en/privacy'],
+    ['/terms-of-service', 'https://heavyar.com/terms'],
+    ['/en/terms-of-service', 'https://heavyar.com/en/terms'],
+  ]) {
+    resetSeoCache();
+    const response = await handleRequest(new Request(`https://heavyar.com${alias}`), {}, { fetcher: unpublished });
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), new RegExp(`canonical" href="${canonical.replaceAll('/', '\\/')}"`));
+  }
+
+  resetSeoCache();
+  const deletion = await handleRequest(new Request('https://heavyar.com/en/account-deletion'), {}, { fetcher: unpublished });
+  const deletionHtml = await deletion.text();
+  assert.match(deletionHtml, /placeholder="Enter your password"/);
+  assert.match(deletionHtml, /<div lang="en" dir="ltr"><main/);
+  assert.match(deletion.headers.get('content-security-policy'), /static\.cloudflareinsights\.com/);
+
+  const certificate = await handleRequest(new Request('https://heavyar.com/assets/cert/sbc-certificate.png'), {
+    ASSETS: { fetch: async () => new Response('jpeg', { headers: { 'Content-Type': 'image/png' } }) },
+  }, { fetcher: unpublished });
+  assert.equal(certificate.headers.get('content-type'), 'image/jpeg');
+});
