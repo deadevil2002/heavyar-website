@@ -320,8 +320,13 @@ test('landing pages use the official Saudi Business seal without the legacy stat
     assert.match(html, /class="nav-lang-icon"/);
     assert.match(html, /src="\/assets\/seal-lifecycle\.js"/);
     assert.ok(html.indexOf('/assets/seal-lifecycle.js') < html.indexOf('https://eauthenticate.saudibusiness.gov.sa/EAuthSealApi/seal.js'));
-    assert.match(response.headers.get('content-security-policy'), /script-src[^;]*https:\/\/eauthenticate\.saudibusiness\.gov\.sa/);
-    assert.doesNotMatch(response.headers.get('content-security-policy'), /script-src[^;]*(?:\*|'unsafe-eval')/);
+    const csp = response.headers.get('content-security-policy');
+    assert.match(csp, /script-src[^;]*https:\/\/eauthenticate\.saudibusiness\.gov\.sa/);
+    assert.doesNotMatch(csp, /script-src[^;]*(?:\*|'unsafe-eval')/);
+    assert.equal(
+      csp.split(';').map(value => value.trim()).find(value => value.startsWith('frame-src')),
+      'frame-src https://heavyar-app.firebaseapp.com https://eauthenticate.saudibusiness.gov.sa',
+    );
   }
 });
 
@@ -340,93 +345,67 @@ test('language control is singular, localized, and keeps locale routes and direc
   }
 });
 
-test('seal fallback lifecycle fails closed for broken images even with SVG', async () => {
+test('seal lifecycle reveals only the exact provider frame after its authenticated message', async () => {
   const lifecycle = await readFile(new URL('../assets/seal-lifecycle.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../assets/site.css', import.meta.url), 'utf8');
-  const listeners = {};
-  const attributes = new Map();
-  const image = { tagName: 'IMG', complete: true, naturalWidth: 0, naturalHeight: 0 };
-  const svg = {};
-  const container = {
-    matches: value => value === '.sbc-verify-seal',
-    querySelectorAll: value => value === 'img' ? [image] : [],
-    querySelector: value => value === 'canvas, svg' ? svg : null,
-    addEventListener: (type, listener) => { listeners[type] = listener; },
-    setAttribute: (name, value) => attributes.set(name, value),
-    removeAttribute: name => attributes.delete(name),
-  };
-  class MutationObserver {
-    constructor(callback) { this.callback = callback; }
-    observe() {}
-  }
-  runInNewContext(lifecycle, {
-    document: {
-      readyState: 'complete',
-      documentElement: {},
-      querySelectorAll: () => [container],
-    },
-    MutationObserver,
-    WeakSet,
-    WeakMap,
-    Image: class {},
-    getComputedStyle: () => ({ backgroundImage: 'none' }),
-  });
-
-  assert.equal(attributes.has('data-seal-ready'), false);
-  image.naturalWidth = 180;
-  image.naturalHeight = 60;
-  listeners.load({ target: image });
-  assert.equal(attributes.get('data-seal-ready'), 'true');
-  image.naturalWidth = 0;
-  image.naturalHeight = 0;
-  listeners.error({ target: image });
-  assert.equal(attributes.has('data-seal-ready'), false);
-  assert.match(css, /\.sbc-verify-seal:not\(\[data-seal-ready="true"\]\)/);
-  assert.doesNotMatch(lifecycle, /nextElementSibling|previousElementSibling|parentElement/);
-  assert.doesNotMatch(lifecycle, /querySelector\([^)]*iframe|tagName\s*===\s*['"]IFRAME|data-seal-frame/);
-  assert.match(lifecycle, /Do not infer success from iframe load/);
-});
-
-test('seal background requires load proof and supports late success or failure', async () => {
-  const lifecycle = await readFile(new URL('../assets/seal-lifecycle.js', import.meta.url), 'utf8');
-
-  function scenario(result) {
+  for (const [documentLang, sealLang] of [['ar-SA', 'ar'], ['en', 'en']]) {
+    const messageListeners = {};
+    const observers = [];
+    const source = {};
+    const wrongSource = {};
     const attributes = new Map();
-    const created = [];
-    const container = {
-      matches: value => value === '.sbc-verify-seal',
-      querySelectorAll: () => [],
-      querySelector: () => null,
-      addEventListener: () => {},
+    const frameListeners = {};
+    const exactSrc = `https://eauthenticate.saudibusiness.gov.sa/EAuthSealApi/seal?token=eTlYY0g1Z0x3OUM2QmFkdmUyNk5rZz09&lang=${sealLang}&pos=bottom`;
+    const frame = {
+      contentWindow: source,
+      getAttribute: name => name === 'src' ? exactSrc : null,
+      addEventListener: (type, listener) => { frameListeners[type] = listener; },
       setAttribute: (name, value) => attributes.set(name, value),
       removeAttribute: name => attributes.delete(name),
     };
-    class BackgroundImage {
-      constructor() {
-        this.naturalWidth = result === 'load' ? 180 : 0;
-        this.naturalHeight = result === 'load' ? 60 : 0;
-        created.push(this);
-      }
-      set src(value) { this.url = value; }
+    const wrongFrame = {
+      contentWindow: source,
+      getAttribute: () => exactSrc.replace('eTlYY0g1Z0x3OUM2QmFkdmUyNk5rZz09', 'wrong-token'),
+      addEventListener: () => {},
+      setAttribute: () => assert.fail('wrong-token frame must never be revealed'),
+      removeAttribute: () => {},
+    };
+    class MutationObserver {
+      constructor(callback) { this.callback = callback; observers.push(this); }
+      observe() {}
     }
-    class MutationObserver { observe() {} }
     runInNewContext(lifecycle, {
-      document: { documentElement: {}, querySelectorAll: () => [container] },
+      document: { baseURI: 'https://heavyar.com/', documentElement: { lang: documentLang }, querySelectorAll: () => [frame, wrongFrame] },
+      window: { addEventListener: (type, listener) => { messageListeners[type] = listener; } },
       MutationObserver,
       WeakSet,
-      WeakMap,
-      Image: BackgroundImage,
-      getComputedStyle: () => ({ backgroundImage: 'url("https://official.example/seal.png")' }),
+      URL,
     });
+
     assert.equal(attributes.has('data-seal-ready'), false);
-    assert.equal(created.length, 1);
-    if (result === 'load') created[0].onload();
-    else created[0].onerror();
-    return attributes;
+    messageListeners.message({ origin: 'https://evil.example', source, data: { sbcSeal: true } });
+    messageListeners.message({ origin: 'https://eauthenticate.saudibusiness.gov.sa', source: wrongSource, data: { sbcSeal: true } });
+    messageListeners.message({ origin: 'https://eauthenticate.saudibusiness.gov.sa', source, data: { sbcSeal: false } });
+    assert.equal(attributes.has('data-seal-ready'), false);
+
+    messageListeners.message({ origin: 'https://eauthenticate.saudibusiness.gov.sa', source, data: { sbcSeal: true } });
+    assert.equal(attributes.get('data-seal-ready'), 'true');
+    assert.equal(frameListeners.load, undefined);
+    frameListeners.load?.();
+    assert.equal(attributes.get('data-seal-ready'), 'true');
+    frameListeners.error();
+    assert.equal(attributes.has('data-seal-ready'), false);
+
+    messageListeners.message({ origin: 'https://eauthenticate.saudibusiness.gov.sa', source, data: { sbcSeal: true } });
+    observers[0].callback();
+    assert.equal(attributes.has('data-seal-ready'), false);
   }
 
-  assert.equal(scenario('error').has('data-seal-ready'), false);
-  assert.equal(scenario('load').get('data-seal-ready'), 'true');
+  assert.match(css, /\.sbc-verify-seal:not\(\[data-seal-ready="true"\]\)/);
+  assert.match(css, /iframe\.sbc-seal-frame:not\(\[data-seal-ready="true"\]\)/);
+  assert.match(lifecycle, /document\.querySelectorAll\(frameSelector\)/);
+  assert.doesNotMatch(lifecycle, /querySelectorAll\([^)]*sbc-verify-seal/);
+  assert.doesNotMatch(lifecycle, /new Image|backgroundImage|naturalWidth/);
 });
 
 test('static landing surface keeps the CR and official seal while removing the image', async () => {

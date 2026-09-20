@@ -519,6 +519,12 @@ html[dir="ltr"] body {
   pointer-events: none !important;
 }
 
+iframe.sbc-seal-frame:not([data-seal-ready="true"]) {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* SR Only */
 .sr-only {
   position: absolute;

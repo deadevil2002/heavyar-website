@@ -22,7 +22,7 @@ const PRESERVED_DOCUMENT_ROUTES = {
 };
 const text = (body, status = 200, type = 'text/plain; charset=utf-8', extra = {}) => new Response(body, { status, headers: { 'Content-Type': type, 'X-Content-Type-Options': 'nosniff', ...extra } });
 const securityHeaders = {
-  'Content-Security-Policy': "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; frame-src https://heavyar-app.firebaseapp.com; form-action 'self'; script-src 'self' https://www.gstatic.com https://static.cloudflareinsights.com https://eauthenticate.saudibusiness.gov.sa; connect-src 'self' https://heavyar-api.heavyar-official.workers.dev https://*.googleapis.com https://cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com",
+  'Content-Security-Policy': "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; frame-src https://heavyar-app.firebaseapp.com https://eauthenticate.saudibusiness.gov.sa; form-action 'self'; script-src 'self' https://www.gstatic.com https://static.cloudflareinsights.com https://eauthenticate.saudibusiness.gov.sa; connect-src 'self' https://heavyar-api.heavyar-official.workers.dev https://*.googleapis.com https://cloudflareinsights.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com",
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   'X-Frame-Options': 'DENY',

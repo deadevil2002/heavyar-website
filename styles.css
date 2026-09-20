@@ -121,6 +121,12 @@ body[dir="ltr"] {
   pointer-events: none !important;
 }
 
+iframe.sbc-seal-frame:not([data-seal-ready="true"]) {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* Hero Section */
 .hero {
   position: relative;
