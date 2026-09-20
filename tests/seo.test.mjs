@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { fallbackPayload } from '../src/fallback.mjs';
 import { escapeJson, pageFor, renderHead, resetSeoCache, getSeo, robotsTxt, sitemapXml, validatePublishedPayload } from '../src/seo.mjs';
 import { readFile } from 'node:fs/promises';
+import { runInNewContext } from 'node:vm';
 import { handleRequest } from '../src/handler.mjs';
 import { LEGACY_SOURCE_SHA256, legacySource, renderLegacy } from '../src/legacy.mjs';
 
@@ -306,7 +307,7 @@ test('production blocker aliases and English deletion fields are corrected', asy
 
 test('landing pages use the official Saudi Business seal without the legacy static image', async () => {
   const unpublished = async () => Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
-  const seal = /<div class="sbc-verify-seal"\s+data-token="eTlYY0g1Z0x3OUM2QmFkdmUyNk5rZz09"\s+data-position="bottom-left"><\/div>\s+<script src="https:\/\/eauthenticate\.saudibusiness\.gov\.sa\/EAuthSealApi\/seal\.js" async><\/script>/;
+  const seal = /<div class="sbc-verify-seal"\s+data-token="eTlYY0g1Z0x3OUM2QmFkdmUyNk5rZz09"\s+data-position="bottom-left"><\/div>/;
   for (const path of ['/', '/en/']) {
     resetSeoCache();
     const response = await handleRequest(new Request(`https://heavyar.com${path}`), {}, { fetcher: unpublished });
@@ -314,9 +315,118 @@ test('landing pages use the official Saudi Business seal without the legacy stat
     assert.match(html, seal);
     assert.match(html, /7050191290/);
     assert.doesNotMatch(html, /sbc-certificate\.png/);
+    assert.equal((html.match(/class="nav-lang"/g) || []).length, 1);
+    assert.doesNotMatch(html, /class="language-route"/);
+    assert.match(html, /class="nav-lang-icon"/);
+    assert.match(html, /src="\/assets\/seal-lifecycle\.js"/);
+    assert.ok(html.indexOf('/assets/seal-lifecycle.js') < html.indexOf('https://eauthenticate.saudibusiness.gov.sa/EAuthSealApi/seal.js'));
     assert.match(response.headers.get('content-security-policy'), /script-src[^;]*https:\/\/eauthenticate\.saudibusiness\.gov\.sa/);
     assert.doesNotMatch(response.headers.get('content-security-policy'), /script-src[^;]*(?:\*|'unsafe-eval')/);
   }
+});
+
+test('language control is singular, localized, and keeps locale routes and direction', async () => {
+  const unpublished = async () => Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
+  for (const [path, lang, dir, target, label] of [
+    ['/', 'ar-SA', 'rtl', '/en/', 'English'],
+    ['/en/', 'en', 'ltr', '/', 'العربية'],
+  ]) {
+    resetSeoCache();
+    const html = await (await handleRequest(new Request(`https://heavyar.com${path}`), {}, { fetcher: unpublished })).text();
+    assert.match(html, new RegExp(`<html lang="${lang}" dir="${dir}">`));
+    assert.equal((html.match(/class="nav-lang"/g) || []).length, 1);
+    assert.match(html, new RegExp(`href="${target.replaceAll('/', '\\/')}" class="nav-lang"`));
+    assert.match(html, new RegExp(`<span>${label}</span>`));
+  }
+});
+
+test('seal fallback lifecycle fails closed for broken images even with SVG', async () => {
+  const lifecycle = await readFile(new URL('../assets/seal-lifecycle.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../assets/site.css', import.meta.url), 'utf8');
+  const listeners = {};
+  const attributes = new Map();
+  const image = { tagName: 'IMG', complete: true, naturalWidth: 0, naturalHeight: 0 };
+  const svg = {};
+  const container = {
+    matches: value => value === '.sbc-verify-seal',
+    querySelectorAll: value => value === 'img' ? [image] : [],
+    querySelector: value => value === 'canvas, svg' ? svg : null,
+    addEventListener: (type, listener) => { listeners[type] = listener; },
+    setAttribute: (name, value) => attributes.set(name, value),
+    removeAttribute: name => attributes.delete(name),
+  };
+  class MutationObserver {
+    constructor(callback) { this.callback = callback; }
+    observe() {}
+  }
+  runInNewContext(lifecycle, {
+    document: {
+      readyState: 'complete',
+      documentElement: {},
+      querySelectorAll: () => [container],
+    },
+    MutationObserver,
+    WeakSet,
+    WeakMap,
+    Image: class {},
+    getComputedStyle: () => ({ backgroundImage: 'none' }),
+  });
+
+  assert.equal(attributes.has('data-seal-ready'), false);
+  image.naturalWidth = 180;
+  image.naturalHeight = 60;
+  listeners.load({ target: image });
+  assert.equal(attributes.get('data-seal-ready'), 'true');
+  image.naturalWidth = 0;
+  image.naturalHeight = 0;
+  listeners.error({ target: image });
+  assert.equal(attributes.has('data-seal-ready'), false);
+  assert.match(css, /\.sbc-verify-seal:not\(\[data-seal-ready="true"\]\)/);
+  assert.doesNotMatch(lifecycle, /nextElementSibling|previousElementSibling|parentElement/);
+  assert.doesNotMatch(lifecycle, /querySelector\([^)]*iframe|tagName\s*===\s*['"]IFRAME|data-seal-frame/);
+  assert.match(lifecycle, /Do not infer success from iframe load/);
+});
+
+test('seal background requires load proof and supports late success or failure', async () => {
+  const lifecycle = await readFile(new URL('../assets/seal-lifecycle.js', import.meta.url), 'utf8');
+
+  function scenario(result) {
+    const attributes = new Map();
+    const created = [];
+    const container = {
+      matches: value => value === '.sbc-verify-seal',
+      querySelectorAll: () => [],
+      querySelector: () => null,
+      addEventListener: () => {},
+      setAttribute: (name, value) => attributes.set(name, value),
+      removeAttribute: name => attributes.delete(name),
+    };
+    class BackgroundImage {
+      constructor() {
+        this.naturalWidth = result === 'load' ? 180 : 0;
+        this.naturalHeight = result === 'load' ? 60 : 0;
+        created.push(this);
+      }
+      set src(value) { this.url = value; }
+    }
+    class MutationObserver { observe() {} }
+    runInNewContext(lifecycle, {
+      document: { documentElement: {}, querySelectorAll: () => [container] },
+      MutationObserver,
+      WeakSet,
+      WeakMap,
+      Image: BackgroundImage,
+      getComputedStyle: () => ({ backgroundImage: 'url("https://official.example/seal.png")' }),
+    });
+    assert.equal(attributes.has('data-seal-ready'), false);
+    assert.equal(created.length, 1);
+    if (result === 'load') created[0].onload();
+    else created[0].onerror();
+    return attributes;
+  }
+
+  assert.equal(scenario('error').has('data-seal-ready'), false);
+  assert.equal(scenario('load').get('data-seal-ready'), 'true');
 });
 
 test('static landing surface keeps the CR and official seal while removing the image', async () => {
@@ -324,5 +434,8 @@ test('static landing surface keeps the CR and official seal while removing the i
   assert.match(html, /السجل التجاري: 7050191290/);
   assert.match(html, /data-token="eTlYY0g1Z0x3OUM2QmFkdmUyNk5rZz09"/);
   assert.match(html, /src="https:\/\/eauthenticate\.saudibusiness\.gov\.sa\/EAuthSealApi\/seal\.js"/);
+  assert.match(html, /href="\/en\/" hreflang="en"/);
+  assert.equal((html.match(/class="language-toggle language-route"/g) || []).length, 1);
+  assert.match(html, /src="\/assets\/seal-lifecycle\.js"/);
   assert.doesNotMatch(html, /sbc-certificate\.png/);
 });

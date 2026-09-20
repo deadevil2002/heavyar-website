@@ -69,6 +69,9 @@ html[dir="ltr"] body {
   color: var(--hv-gold);
 }
 .nav-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: #fff;
   border: 1px solid var(--hv-gold);
   padding: 6px 12px;
@@ -76,6 +79,9 @@ html[dir="ltr"] body {
   text-decoration: none;
   font-weight: 600;
   transition: background 0.2s, color 0.2s;
+}
+.nav-lang-icon {
+  flex: 0 0 auto;
 }
 .nav-lang:hover, .nav-lang:focus-visible {
   background: var(--hv-gold);
@@ -504,6 +510,13 @@ html[dir="ltr"] body {
   padding-top: 40px;
   border-top: 1px solid rgba(255,255,255,0.1);
   font-size: 0.875rem;
+}
+
+/* Keep the official integration mounted while suppressing empty or failed UI. */
+.sbc-verify-seal:not([data-seal-ready="true"]) {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* SR Only */

@@ -114,7 +114,10 @@ export function renderHome({ locale, faqs = [], earlyAccessEnabled = false }) {
           <a href="#equipment" class="nav-link">${t.navEquipment}</a>
           <a href="#drivers" class="nav-link">${t.navDrivers}</a>
           <a href="#about" class="nav-link">${t.navAbout}</a>
-          <a href="${t.navLanguageLink}" class="nav-lang" hreflang="${isEn ? 'ar' : 'en'}">${t.navLanguage}</a>
+          <a href="${t.navLanguageLink}" class="nav-lang" hreflang="${isEn ? 'ar-SA' : 'en'}" lang="${isEn ? 'ar' : 'en'}" aria-label="${isEn ? 'عرض هذه الصفحة بالعربية' : 'View this page in English'}">
+            <svg class="nav-lang-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3Z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+            <span>${t.navLanguage}</span>
+          </a>
         </div>
       </div>
     </nav>
@@ -309,6 +312,7 @@ export function renderHome({ locale, faqs = [], earlyAccessEnabled = false }) {
     <div class="sbc-verify-seal"
          data-token="eTlYY0g1Z0x3OUM2QmFkdmUyNk5rZz09"
          data-position="bottom-left"></div>
+    <script src="/assets/seal-lifecycle.js"></script>
     <script src="https://eauthenticate.saudibusiness.gov.sa/EAuthSealApi/seal.js" async></script>
   `;
 }

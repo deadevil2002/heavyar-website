@@ -38,13 +38,18 @@ function pageSecurityHeaders(development = false) {
 
 function shell(locale, head, body, key) {
   const dir = locale === 'ar-SA' ? 'rtl' : 'ltr';
-  const other = locale === 'ar-SA' ? (key === 'home' ? '/en/' : `/en/${key === 'account-deletion' ? 'account-deletion' : key}`) : (key === 'home' ? '/' : `/${key}`);
-  return `<!doctype html><html lang="${locale}" dir="${dir}"><head>${head}</head><body>${body}${key === 'account-deletion' ? '<script type="module" src="/delete-account.js"></script>' : ''}<a class="language-route" href="${other}" aria-label="Language">${locale === 'ar-SA' ? 'English' : 'العربية'}</a></body></html>`;
+  return `<!doctype html><html lang="${locale}" dir="${dir}"><head>${head}</head><body>${body}${key === 'account-deletion' ? '<script type="module" src="/delete-account.js"></script>' : ''}</body></html>`;
 }
 
-function legalNavigation(locale) {
+function languageRoute(locale, key) {
+  const ar = locale === 'ar-SA';
+  const other = ar ? (key === 'home' ? '/en/' : `/en/${key}`) : (key === 'home' ? '/' : `/${key}`);
+  return `<a class="nav-lang" href="${other}" hreflang="${ar ? 'en' : 'ar-SA'}" lang="${ar ? 'en' : 'ar'}" aria-label="${ar ? 'View this page in English' : 'عرض هذه الصفحة بالعربية'}"><svg class="nav-lang-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3Z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>${ar ? 'English' : 'العربية'}</span></a>`;
+}
+
+function legalNavigation(locale, key) {
   const ar = locale === 'ar-SA', prefix = ar ? '' : '/en';
-  return `<nav class="navbar"><div class="container"><a href="${prefix}/" class="navbar-brand"><img src="/assets/images/logo.png" alt="Heavyar" class="navbar-logo"><span class="navbar-title">Heavyar</span></a><div class="footer-links"><a href="${prefix}/privacy">${ar ? 'الخصوصية' : 'Privacy'}</a><a href="${prefix}/terms">${ar ? 'الشروط' : 'Terms'}</a><a href="${prefix}/account-deletion">${ar ? 'حذف الحساب' : 'Delete account'}</a></div></div></nav>`;
+  return `<nav class="navbar"><div class="container"><a href="${prefix}/" class="navbar-brand"><img src="/assets/images/logo.png" alt="Heavyar" class="navbar-logo"><span class="navbar-title">Heavyar</span></a><div class="footer-links"><a href="${prefix}/privacy">${ar ? 'الخصوصية' : 'Privacy'}</a><a href="${prefix}/terms">${ar ? 'الشروط' : 'Terms'}</a><a href="${prefix}/account-deletion">${ar ? 'حذف الحساب' : 'Delete account'}</a>${languageRoute(locale, key)}</div></div></nav>`;
 }
 
 function routeBody(key, locale, page) {
@@ -59,7 +64,7 @@ function routeBody(key, locale, page) {
   const [, description] = sections[key];
   const heading = page.heading;
   const faqs = page.faqs.length ? `<section class="route-faq"><h2>${ar ? 'الأسئلة الشائعة' : 'Frequently asked questions'}</h2>${page.faqs.map(f => `<details><summary>${escapeHtml(f.question)}</summary><p>${escapeHtml(f.answer)}</p></details>`).join('')}</section>` : '';
-  return `<header class="simple-header"><a href="${ar ? '/' : '/en/'}">Heavyar</a></header><main class="route-main"><p class="eyebrow">Heavyar</p><h1>${escapeHtml(heading)}</h1><p>${escapeHtml(description)}</p>${key === 'early-access' ? '<section id="early-access-root" data-early-access="false" hidden></section>' : ''}${faqs}</main>`;
+  return `<header class="simple-header"><a href="${ar ? '/' : '/en/'}">Heavyar</a>${languageRoute(locale, key)}</header><main class="route-main"><p class="eyebrow">Heavyar</p><h1>${escapeHtml(heading)}</h1><p>${escapeHtml(description)}</p>${key === 'early-access' ? '<section id="early-access-root" data-early-access="false" hidden></section>' : ''}${faqs}</main>`;
 }
 
 function devRewrite(html, basePath) {
@@ -140,7 +145,7 @@ export async function handleRequest(request, env = {}, options = {}) {
       }
     }
     else if (['privacy', 'terms', 'account-deletion'].includes(key)) {
-      body = `${legalNavigation(locale)}${await renderLegacy(key, locale, legacySource(key))}`;
+      body = `${legalNavigation(locale, key)}${await renderLegacy(key, locale, legacySource(key))}`;
     }
     else body = routeBody(key, locale, page);
     const extraHead = ['privacy', 'terms', 'account-deletion'].includes(key) ? '<link rel="stylesheet" href="/styles.css">' : '';
