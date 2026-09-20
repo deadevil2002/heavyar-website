@@ -296,9 +296,6 @@ export function renderHome({ locale, faqs = [], earlyAccessEnabled = false }) {
             <h3>${esc(t.footerContact)}</h3>
             <p><a href="mailto:heavyar.official@gmail.com">heavyar.official@gmail.com</a></p>
             <div class="footer-cert">
-              <a href="https://eauthenticate.saudibusiness.gov.sa/certificate-details/0000195630" target="_blank" rel="noopener noreferrer" aria-label="Commercial Registration Certificate">
-                <img src="/assets/cert/sbc-certificate.png" alt="SBC Certificate" width="60" class="cert-img" loading="lazy">
-              </a>
               <span class="cr-text">${esc(t.crInfo)}</span>
             </div>
           </div>
@@ -309,5 +306,9 @@ export function renderHome({ locale, faqs = [], earlyAccessEnabled = false }) {
       </div>
     </footer>
     <script src="/assets/site.js"></script>
+    <div class="sbc-verify-seal"
+         data-token="eTlYY0g1Z0x3OUM2QmFkdmUyNk5rZz09"
+         data-position="bottom-left"></div>
+    <script src="https://eauthenticate.saudibusiness.gov.sa/EAuthSealApi/seal.js" async></script>
   `;
 }

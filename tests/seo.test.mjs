@@ -281,7 +281,7 @@ test('development CSP permits the Replit preview frame without weakening product
   assert.equal(production.headers.get('x-frame-options'), 'DENY');
 });
 
-test('production blocker aliases, certificate MIME and English deletion fields are corrected', async () => {
+test('production blocker aliases and English deletion fields are corrected', async () => {
   const unpublished = async () => Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
   for (const [alias, canonical] of [
     ['/privacy-policy', 'https://heavyar.com/privacy'],
@@ -302,8 +302,27 @@ test('production blocker aliases, certificate MIME and English deletion fields a
   assert.match(deletionHtml, /<div lang="en" dir="ltr"><main/);
   assert.match(deletion.headers.get('content-security-policy'), /static\.cloudflareinsights\.com/);
 
-  const certificate = await handleRequest(new Request('https://heavyar.com/assets/cert/sbc-certificate.png'), {
-    ASSETS: { fetch: async () => new Response('jpeg', { headers: { 'Content-Type': 'image/png' } }) },
-  }, { fetcher: unpublished });
-  assert.equal(certificate.headers.get('content-type'), 'image/png');
+});
+
+test('landing pages use the official Saudi Business seal without the legacy static image', async () => {
+  const unpublished = async () => Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
+  const seal = /<div class="sbc-verify-seal"\s+data-token="eTlYY0g1Z0x3OUM2QmFkdmUyNk5rZz09"\s+data-position="bottom-left"><\/div>\s+<script src="https:\/\/eauthenticate\.saudibusiness\.gov\.sa\/EAuthSealApi\/seal\.js" async><\/script>/;
+  for (const path of ['/', '/en/']) {
+    resetSeoCache();
+    const response = await handleRequest(new Request(`https://heavyar.com${path}`), {}, { fetcher: unpublished });
+    const html = await response.text();
+    assert.match(html, seal);
+    assert.match(html, /7050191290/);
+    assert.doesNotMatch(html, /sbc-certificate\.png/);
+    assert.match(response.headers.get('content-security-policy'), /script-src[^;]*https:\/\/eauthenticate\.saudibusiness\.gov\.sa/);
+    assert.doesNotMatch(response.headers.get('content-security-policy'), /script-src[^;]*(?:\*|'unsafe-eval')/);
+  }
+});
+
+test('static landing surface keeps the CR and official seal while removing the image', async () => {
+  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(html, /السجل التجاري: 7050191290/);
+  assert.match(html, /data-token="eTlYY0g1Z0x3OUM2QmFkdmUyNk5rZz09"/);
+  assert.match(html, /src="https:\/\/eauthenticate\.saudibusiness\.gov\.sa\/EAuthSealApi\/seal\.js"/);
+  assert.doesNotMatch(html, /sbc-certificate\.png/);
 });
