@@ -88,7 +88,7 @@ test('legal routes use repository sources without fetching Pages assets', async 
 test('clean preserved-document aliases retain content and root-relative navigation', async () => {
   for (const [path, expected] of [
     ['/contact', /تواصل معنا/],
-    ['/refund', /سياسة الاسترجاع/],
+    ['/refund', /سياسة الإلغاء والاسترجاع/],
     ['/safety', /السلامة/],
     ['/providers-terms', /شروط مقدمي الخدمة/],
     ['/faq', /هل Heavyar يملك المعدات المعروضة/],
@@ -99,7 +99,9 @@ test('clean preserved-document aliases retain content and root-relative navigati
     assert.equal(response.status, 200);
     assert.match(html, expected);
     assert.match(html, /href="\/privacy"/);
-    assert.match(html, /src="\/script\.js"/);
+    assert.match(html, /src="\/assets\/site\.js"/);
+    assert.match(html, /class="site-nav"/);
+    assert.match(html, /class="site-footer"/);
   }
 });
 
@@ -120,7 +122,7 @@ test('production never proxies browser Early Access APIs', async () => {
   assert.equal(calls, 0);
 });
 
-test('dedicated Early Access route contains the real fail-closed form', async () => {
+test('dedicated Early Access route keeps conversion visible while submission fails closed', async () => {
   resetSeoCache();
   const response = await handleRequest(new Request('https://heavyar.com/en/early-access'), {}, {
     fetcher: async () => Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 }),
@@ -130,7 +132,33 @@ test('dedicated Early Access route contains the real fail-closed form', async ()
   assert.equal(response.headers.get('x-robots-tag'), 'noindex,follow');
   assert.match(html, /name="heavyar-api-base" content="https:\/\/heavyar-api\.heavyar-official\.workers\.dev"/);
   assert.match(html, /data-ea-form/);
-  assert.match(html, /data-early-access-section style="display:none;"/);
+  assert.match(html, /data-early-access-section data-ea-initial-enabled="false"/);
+  assert.match(html, /data-ea-form style="display:none;"/);
+  assert.match(html, /data-ea-closed-message\s+class="ea-status error text-center"/);
+  assert.match(html, />Get Early Access</);
+});
+
+test('landing keeps Early Access as a primary conversion without bypassing config', async () => {
+  const unpublished = async () => Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
+  for (const [path, label] of [['/', 'سجل للوصول المبكر'], ['/en/', 'Get Early Access']]) {
+    resetSeoCache();
+    const html = await (await handleRequest(new Request(`https://heavyar.com${path}`), {}, { fetcher: unpublished })).text();
+    assert.match(html, /class="nav-cta" data-early-access-cta/);
+    assert.match(html, new RegExp(`>${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}<`));
+    assert.match(html, /id="early-access"[^>]*data-early-access-section data-ea-initial-enabled="false"/);
+    assert.match(html, /data-ea-form style="display:none;"/);
+    assert.doesNotMatch(html, /data-early-access-section[^>]*style="display:none;"/);
+  }
+});
+
+test('landing motion has a readable reduced-motion final state', async () => {
+  const css = await readFile(new URL('../assets/site.css', import.meta.url), 'utf8');
+  const js = await readFile(new URL('../assets/site.js', import.meta.url), 'utf8');
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(css, /\.js-reveal \[data-reveal\] \{ opacity: 1; transform: none; \}/);
+  assert.match(css, /\.hero-image-frame[^}]*transform: none !important/);
+  assert.match(js, /matchMedia\('\(prefers-reduced-motion: reduce\)'\)\.matches/);
+  assert.match(js, /if \(!reduceMotion\) \{/);
 });
 
 test('HEAD responses have no body and favicon aliases the icon asset', async () => {
@@ -440,4 +468,57 @@ test('legal policies preserve compliance guardrails and approved V1 cancellation
   const restricted = await (await handleRequest(new Request('https://heavyar.com/en/restricted-activities'))).text();
   assert.match(restricted, /truck-rental-without-driver/i);
   assert.match(restricted, /not automatically a truck-rental licence/i);
+});
+
+test('every rendered public page uses the shared Heavyar shell without visible em dashes', async () => {
+  const unpublished = async () => Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
+  const routes = [
+    '/', '/en/', '/about', '/en/about', '/equipment', '/en/equipment', '/drivers', '/en/drivers', '/help', '/en/help',
+    '/early-access', '/en/early-access', '/terms', '/en/terms', '/privacy', '/en/privacy',
+    '/account-deletion', '/en/account-deletion', '/refund-policy', '/en/refund-policy', '/disputes', '/en/disputes',
+    '/provider-terms', '/en/provider-terms', '/verification', '/en/verification', '/restricted-activities', '/en/restricted-activities',
+    '/refund', '/safety', '/providers-terms', '/faq', '/contact',
+  ];
+  for (const path of routes) {
+    const response = await handleRequest(new Request(`https://heavyar.com${path}`), {}, { fetcher: unpublished });
+    const html = await response.text();
+    assert.equal(response.status, 200, path);
+    assert.match(html, /class="site-nav"/, path);
+    assert.match(html, /class="site-footer"/, path);
+    assert.match(html, /\/assets\/site\.css/, path);
+    assert.doesNotMatch(html, /\u2014/, path);
+  }
+});
+
+test('404 response is branded, localized, and non-indexable', async () => {
+  for (const [path, dir] of [['/missing', 'rtl'], ['/en/missing', 'ltr']]) {
+    const response = await handleRequest(new Request(`https://heavyar.com${path}`));
+    const html = await response.text();
+    assert.equal(response.status, 404);
+    assert.match(html, new RegExp(`dir="${dir}"`));
+    assert.match(html, /class="not-found-page"/);
+    assert.match(html, /class="site-nav"/);
+    assert.match(html, /class="site-footer"/);
+    assert.match(html, /noindex,nofollow/);
+  }
+});
+
+test('decorative horizontal accent lines are absent from shared website UI', async () => {
+  const [css, site, handler, legal] = await Promise.all([
+    readFile(new URL('../assets/site.css', import.meta.url), 'utf8'),
+    readFile(new URL('../src/site.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../src/handler.mjs', import.meta.url), 'utf8'),
+    readFile(new URL('../src/legal-pages.mjs', import.meta.url), 'utf8'),
+  ]);
+  assert.doesNotMatch(css, /eyebrow-light\s*>\s*span|nav-link::after|step-card::after|preserved-page[^\n]*h1::before|hero::before|inner-hero::before|trust-nodes\s*>\s*i/);
+  for (const source of [site, handler, legal]) assert.doesNotMatch(source, /class="eyebrow[^"]*"[^>]*>\s*<span(?:\s[^>]*)?>\s*<\/span>/);
+  assert.doesNotMatch(site, /<div class="trust-nodes"[^>]*>[\s\S]*?<i><\/i>/);
+});
+
+test('process cards keep responsive separation after reveal motion', async () => {
+  const css = await readFile(new URL('../assets/site.css', import.meta.url), 'utf8');
+  assert.match(css, /\.js-reveal \.step-card\[data-reveal\]\.is-visible \{ transform: translateY\(0\); \}/);
+  assert.match(css, /\.js-reveal \.step-card\[data-reveal\]:nth-child\(2\)\.is-visible \{ transform: translateY\(26px\); \}/);
+  assert.match(css, /@media \(max-width: 820px\)[\s\S]*?\.steps-grid \{ grid-template-columns: 1fr; gap: 24px; \}/);
+  assert.match(css, /\.js-reveal \.step-card\[data-reveal\]:nth-child\(2\)\.is-visible \{ transform: none; \}/);
 });

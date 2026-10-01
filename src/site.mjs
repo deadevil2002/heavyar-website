@@ -14,310 +14,159 @@ export const FAQ_FALLBACK_EN = [
 
 const esc = (str) => {
   if (!str) return '';
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 };
+
+const icon = (name) => {
+  const paths = {
+    search: '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.25 4.25"/>',
+    equipment: '<path d="M4 16.5h11.5l2.5-4.8h-5l-2-5H7.5L5.8 12H4z"/><path d="M8 6.7 9.5 3H14l2 4.5M6.5 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm9 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/>',
+    driver: '<circle cx="12" cy="8" r="3.25"/><path d="M5.5 20c.4-4 2.6-6 6.5-6s6.1 2 6.5 6"/>',
+    shield: '<path d="M12 3 5 6v5c0 4.7 2.6 8 7 10 4.4-2 7-5.3 7-10V6z"/><path d="m9 12 2 2 4-4"/>',
+    pin: '<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+    chart: '<path d="M4 20V10m6 10V4m6 16v-7m4 7H2"/>',
+    arrow: '<path d="M5 12h14m-5-5 5 5-5 5"/>',
+    check: '<path d="m5 12 4 4L19 6"/>',
+    layers: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'
+  };
+  return `<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[name]}</svg>`;
+};
+
+const siteCopy = (locale) => {
+  const isEn = locale === 'en';
+  const pick = (ar, en) => isEn ? en : ar;
+  return {
+    skip: pick('تجاوز إلى المحتوى', 'Skip to content'),
+    navMarketplace: pick('المنظومة', 'Marketplace'),
+    navEquipment: pick('المعدات', 'Equipment'),
+    navHow: pick('كيف تعمل', 'How it works'),
+    navTrust: pick('الثقة', 'Trust'),
+    navLanguage: pick('English', 'العربية'),
+    earlyAccess: pick('سجل للوصول المبكر', 'Get Early Access'),
+    footerAbout: pick('عن Heavyar', 'About Heavyar'),
+    footerAboutText: pick('منصة سوق سعودية قادمة تربط العملاء ومقدمي المعدات والسائقين.', 'An upcoming Saudi marketplace connecting customers, equipment providers, and drivers.'),
+    footerLinks: pick('السياسات والروابط', 'Policies & links'),
+    footerContact: pick('تواصل معنا', 'Contact us'),
+    terms: pick('شروط الاستخدام', 'Terms of Service'),
+    privacy: pick('سياسة الخصوصية', 'Privacy Policy'),
+    deleteAcc: pick('حذف الحساب', 'Delete Account'),
+    crInfo: pick('السجل التجاري: 7050191290', 'Commercial Registration: 7050191290'),
+    rights: pick('© 2026 Heavyar - جميع الحقوق محفوظة', '© 2026 Heavyar. All rights reserved.'),
+  };
+};
+
+const localizedPath = (locale, path) => path === '/' ? (locale === 'en' ? '/en/' : '/') : (locale === 'en' ? `/en${path}` : path);
+
+export function renderSiteHeader(locale, { key = 'home', homeAnchors = false } = {}) {
+  const isEn = locale === 'en';
+  const t = siteCopy(locale);
+  const home = localizedPath(locale, '/');
+  const anchor = id => `${homeAnchors ? '' : home}#${id}`;
+  const other = isEn ? (key === 'home' ? '/' : `/${key}`) : (key === 'home' ? '/en/' : `/en/${key}`);
+  const pick = (ar, en) => isEn ? en : ar;
+  return `<a class="skip-link" href="#main-content">${esc(t.skip)}</a>
+    <nav class="site-nav" aria-label="${pick('الملاحة الرئيسية', 'Main navigation')}">
+      <div class="site-container nav-inner">
+        <a href="${home}" class="nav-brand" aria-label="${pick('Heavyar، الرئيسية', 'Heavyar, Home')}"><span class="brand-mark"><img src="/assets/icons/brand.png" alt="" width="36" height="36" class="nav-logo"></span><span class="nav-title">Heavyar</span></a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" aria-label="${pick('فتح القائمة', 'Open menu')}" data-nav-toggle><span></span><span></span><span></span></button>
+        <div class="nav-menu" id="primary-navigation" data-nav-menu>
+          <a href="${anchor('marketplace')}" class="nav-link">${esc(t.navMarketplace)}</a><a href="${anchor('equipment')}" class="nav-link">${esc(t.navEquipment)}</a><a href="${anchor('how-it-works')}" class="nav-link">${esc(t.navHow)}</a><a href="${anchor('trust')}" class="nav-link">${esc(t.navTrust)}</a>
+          <a href="${anchor('early-access')}" class="nav-cta" data-early-access-cta>${esc(t.earlyAccess)}</a>
+          <a href="${other}" class="nav-lang" hreflang="${isEn ? 'ar-SA' : 'en'}" lang="${isEn ? 'ar' : 'en'}" aria-label="${isEn ? 'عرض هذه الصفحة بالعربية' : 'View this page in English'}"><svg class="nav-lang-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3Z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>${t.navLanguage}</span></a>
+        </div>
+      </div>
+    </nav>`;
+}
+
+export function renderSiteFooter(locale) {
+  const isEn = locale === 'en';
+  const pick = (ar, en) => isEn ? en : ar;
+  const t = siteCopy(locale);
+  const path = value => localizedPath(locale, value);
+  const home = path('/');
+  return `<footer class="site-footer"><div class="site-container"><div class="footer-top"><a href="${home}" class="footer-brand"><span class="brand-mark"><img src="/assets/icons/brand.png" alt="" width="36" height="36"></span><span>Heavyar</span></a><p>${esc(t.footerAboutText)}</p></div><div class="footer-grid"><div class="footer-col"><h3>${esc(t.footerAbout)}</h3><a href="${home}#marketplace">${esc(t.navMarketplace)}</a><a href="${home}#equipment">${esc(t.navEquipment)}</a><a href="${home}#how-it-works">${esc(t.navHow)}</a></div><div class="footer-col"><h3>${esc(t.footerLinks)}</h3><a href="${path('/terms')}">${esc(t.terms)}</a><a href="${path('/privacy')}">${esc(t.privacy)}</a><a href="${path('/account-deletion')}">${esc(t.deleteAcc)}</a><a href="${path('/refund-policy')}">${pick('الإلغاء والاسترجاع', 'Cancellation & refunds')}</a></div><div class="footer-col"><h3>${esc(t.footerLinks)}</h3><a href="${path('/disputes')}">${pick('النزاعات', 'Disputes')}</a><a href="${path('/provider-terms')}">${pick('شروط مقدمي الخدمة', 'Provider terms')}</a><a href="${path('/verification')}">${pick('التحقق', 'Verification')}</a><a href="${path('/restricted-activities')}">${pick('الأنشطة المقيدة', 'Restricted activities')}</a></div><div class="footer-col footer-contact"><h3>${esc(t.footerContact)}</h3><a href="mailto:heavyar.official@gmail.com">heavyar.official@gmail.com</a><span class="cr-text">${esc(t.crInfo)}</span></div></div><div class="footer-bottom"><p>${esc(t.rights)}</p><span>${pick('صنع للسوق السعودي', 'Built for Saudi Arabia')}</span></div></div></footer>`;
+}
+
+export const renderSiteScripts = () => `<script src="/assets/site.js"></script>
+    <div class="sbc-verify-seal" data-token="eTlYY0g1Z0x3OUM2QmFkdmUyNk5rZz09" data-position="bottom-left"></div>
+    <script src="/assets/seal-lifecycle.js"></script>
+    <script src="https://eauthenticate.saudibusiness.gov.sa/EAuthSealApi/seal.js" async></script>`;
 
 export function renderHome({ locale, faqs = [], earlyAccessEnabled = false }) {
   const isEn = locale === 'en';
   const faqList = faqs && faqs.length > 0 ? faqs : (isEn ? FAQ_FALLBACK_EN : FAQ_FALLBACK_AR);
-
+  const pick = (ar, en) => isEn ? en : ar;
   const t = {
-    brand: "Heavyar",
-    navEquipment: isEn ? "Equipment" : "المعدات",
-    navDrivers: isEn ? "Drivers" : "السائقين",
-    navAbout: isEn ? "About" : "من نحن",
-    navLanguage: isEn ? "العربية" : "English",
-    navLanguageLink: isEn ? "/" : "/en/",
-    
-    heroTitle: isEn ? "Heavy Equipment Closer Than You Think" : "المعدات الثقيلة أقرب مما تتوقع",
-    heroSubtitle: isEn ? "Your smart platform connecting equipment owners, renters, and drivers to easily find and manage heavy equipment and services." : "منصتك الذكية التي تربط أصحاب المعدات والعملاء والسائقين لتسهيل العثور على المعدات والخدمات وإدارتها.",
-    heroCtaPrimary: isEn ? "Register for Early Access" : "سجل للوصول المبكر",
-    heroCtaSecondary: isEn ? "Discover Heavyar" : "اكتشف Heavyar",
-    
-    whatIsTitle: isEn ? "What is Heavyar?" : "ما هو Heavyar؟",
-    whatIsText: isEn ? "Heavyar is a Saudi marketplace platform connecting the heavy equipment industry. Whether you are looking to rent machinery, offer your equipment, or find qualified operators, Heavyar provides the tools to coordinate requests, availability, and direct communication securely and efficiently." : "Heavyar هي منصة سوق سعودية تربط قطاع المعدات الثقيلة. سواء كنت تبحث عن استئجار آليات، أو عرض معداتك، أو العثور على سائقين مؤهلين، توفر Heavyar الأدوات لتنسيق الطلبات والتواصل المباشر بأمان وكفاءة.",
-
-    howItWorksTitle: isEn ? "How it Works" : "كيف يعمل Heavyar؟",
-    hiwCustomerTitle: isEn ? "For Customers" : "للعملاء",
-    hiwCustomerSteps: isEn ? ["Search equipment", "Compare options", "Send request", "Coordinate and rent"] : ["ابحث عن المعدات", "قارن الخيارات", "أرسل الطلب", "نسق واستأجر"],
-    hiwProviderTitle: isEn ? "For Providers" : "لمقدمي الخدمة",
-    hiwProviderSteps: isEn ? ["Create profile", "Add equipment", "Receive requests", "Manage activity"] : ["أنشئ ملفك", "أضف معداتك", "استقبل الطلبات", "أدر نشاطك"],
-    hiwDriverTitle: isEn ? "For Drivers" : "للسائقين",
-    hiwDriverSteps: isEn ? ["Create driver profile", "Add capabilities", "Set availability", "Receive requests"] : ["أنشئ ملف السائق", "أضف قدراتك", "حدد توافرك", "استقبل الطلبات"],
-
-    equipmentTitle: isEn ? "Equipment Discovery" : "اكتشف المعدات",
-    equipmentText: isEn ? "Browse a wide range of heavy machinery provided by owners across the market." : "تصفح مجموعة واسعة من الآليات الثقيلة المقدمة من أصحاب المعدات في السوق.",
-    categories: isEn ? 
-      ["Excavators", "Cranes", "Loaders", "Bulldozers", "Trucks", "Generators", "Compressors", "Concrete", "Other"] : 
-      ["الحفارات", "الرافعات", "اللوادر", "البلدوزرات", "الشاحنات", "المولدات", "الضواغط", "معدات الخرسانة", "أخرى"],
-      
-    driverTitle: isEn ? "Driver Discovery" : "اكتشاف السائقين",
-    driverText: isEn ? "Need a qualified operator? Heavyar allows you to search for heavy equipment drivers based on capabilities, location, and availability, and send them secure requests." : "هل تحتاج إلى مشغل مؤهل؟ يتيح لك Heavyar البحث عن سائقي المعدات الثقيلة بناءً على قدراتهم وموقعهم وتوافرهم، وإرسال طلبات آمنة لهم.",
-
-    providerTitle: isEn ? "Grow Your Business" : "نمّ أعمالك",
-    providerText: isEn ? "Empower your business with a digital presence. List your machinery, manage rental requests, update availability, and get discovered in a growing marketplace." : "نُمكّن أصحاب المعدات من بناء حضور رقمي. اعرض معداتك، أدر طلبات التأجير، حدّث توافرك، وكن جزءاً من سوق متنامٍ.",
-
-    gccTitle: isEn ? "Saudi First, GCC Ready" : "للسوق السعودي، بجاهزية خليجية",
-    gccText: isEn ? "We are building Heavyar for the Saudi market with readiness for regional GCC expansion." : "نبني Heavyar للسوق السعودي مع جاهزية للتوسع الخليجي مستقبلاً.",
-
-    trustTitle: isEn ? "Trust and Safety" : "الثقة والأمان",
-    trustText: isEn ? "We prioritize security through active moderation of equipment listings, strict account policies, and privacy controls for a reliable marketplace experience." : "نعطي الأولوية للأمان من خلال المراجعة المستمرة لعروض المعدات، سياسات الحساب الصارمة، وضوابط الخصوصية لضمان تجربة موثوقة.",
-
-    earlyTitle: isEn ? "Be Among the First" : "كن من أوائل مستخدمي Heavyar",
-    earlySubtitle: isEn ? "Register for Early Access and get notified when the app launches." : "سجل للوصول المبكر واحصل على إشعار عند إطلاق التطبيق.",
-    eaClosedMsg: isEn ? "Early access registration is currently closed. Please check back later." : "التسجيل للوصول المبكر مغلق حالياً. يرجى التحقق لاحقاً.",
-    eaEmail: isEn ? "Email Address" : "البريد الإلكتروني",
-    eaName: isEn ? "Name (Optional)" : "الاسم (اختياري)",
-    eaCountry: isEn ? "Country (Optional)" : "الدولة (اختياري)",
-    eaLang: isEn ? "Preferred Language (Optional)" : "اللغة المفضلة (اختياري)",
-    eaConsent: isEn ? "I agree to receive occasional updates and marketing communications about Heavyar's launch." : "أوافق على تلقي التحديثات ورسائل التسويق المتعلقة بإطلاق Heavyar.",
-    eaSubmit: isEn ? "Register" : "تسجيل",
-    eaPrivacyNotice: isEn ? "Your data is safe. Read our" : "بياناتك بأمان. اقرأ",
-    eaPrivacyLink: isEn ? "Privacy Policy" : "سياسة الخصوصية",
-
-    faqTitle: isEn ? "Frequently Asked Questions" : "الأسئلة الشائعة",
-
-    appTitle: isEn ? "Heavyar app coming soon" : "تطبيق Heavyar قادم قريباً",
-    
-    footerAbout: isEn ? "About Heavyar" : "عن Heavyar",
-    footerAboutText: isEn ? "A marketplace platform for heavy equipment rental between individuals and companies." : "منصة سعودية لتأجير المعدات الثقيلة بين الأفراد والشركات.",
-    footerLinks: isEn ? "Quick Links" : "روابط سريعة",
-    terms: isEn ? "Terms of Service" : "شروط الاستخدام",
-    privacy: isEn ? "Privacy Policy" : "سياسة الخصوصية",
-    deleteAcc: isEn ? "Delete Account" : "حذف الحساب",
-    footerContact: isEn ? "Contact Us" : "تواصل معنا",
-    crInfo: isEn ? "Commercial Registration: 7050191290" : "السجل التجاري: 7050191290",
-    rights: isEn ? "© 2026 Heavyar. All rights reserved." : "© 2026 Heavyar - جميع الحقوق محفوظة"
+    skip: pick('تجاوز إلى المحتوى', 'Skip to content'), brand: 'Heavyar',
+    navMarketplace: pick('المنظومة', 'Marketplace'), navEquipment: pick('المعدات', 'Equipment'), navHow: pick('كيف تعمل', 'How it works'), navTrust: pick('الثقة', 'Trust'),
+    navLanguage: pick('English', 'العربية'), navLanguageLink: isEn ? '/' : '/en/',
+    heroEyebrow: pick('منظومة سعودية للمعدات الثقيلة', 'A Saudi heavy-equipment ecosystem'),
+    heroTitle: pick('المعدات الثقيلة أقرب مما تتوقع', 'Heavy Equipment Closer Than You Think'),
+    heroSubtitle: pick('منصة واحدة تربط الباحثين عن المعدات بمقدمي الخدمة والسائقين، لتجعل رحلة البحث والطلب والتنسيق أوضح من البداية.', 'One platform connects equipment customers, providers, and drivers, making discovery, requests, and coordination clearer from the start.'),
+    heroCtaPrimary: pick('سجل للوصول المبكر', 'Get Early Access'), heroCtaSecondary: pick('استكشف المنظومة', 'Explore the marketplace'),
+    heroStatus: pick('تطبيق Heavyar، قريباً', 'Heavyar app, coming soon'),
+    heroImageAlt: pick('معدات ثقيلة في موقع عمل تمثل سوق Heavyar', 'Heavy equipment at a worksite representing the Heavyar marketplace'),
+    roleCustomer: pick('باحث عن معدة', 'Equipment customer'), roleProvider: pick('مالك ومقدم خدمة', 'Owner & provider'), roleDriver: pick('سائق ومشغل', 'Driver & operator'),
+    trustSaudi: pick('مصممة للسوق السعودي', 'Built for Saudi Arabia'), trustNetwork: pick('ثلاثة أطراف في منظومة واحدة', 'Three sides, one marketplace'), trustCoordination: pick('مسار طلب وتنسيق واضح', 'Clear request coordination'),
+    introKicker: pick('سوق واحد. فرص أكثر.', 'One marketplace. More opportunity.'), introTitle: pick('كل أطراف العمل الميداني، في مكان واحد', 'Every side of the job, connected'),
+    introText: pick('تجمع Heavyar الأطراف التي تحرك قطاع المعدات الثقيلة ضمن تجربة رقمية واضحة، دون تعقيد أو تشتت بين القنوات.', 'Heavyar brings the people who move the heavy-equipment industry into one clear digital experience, without fragmented channels.'),
+    customerTitle: pick('للباحثين عن المعدات', 'For equipment customers'), customerText: pick('اكتشف الفئات المناسبة، قارن الخيارات، وأرسل طلبك ضمن مسار منظم.', 'Discover the right categories, compare options, and send a structured request.'),
+    providerTitle: pick('لملاك المعدات', 'For equipment owners'), providerText: pick('اعرض معداتك، حدّث توافرها، واستقبل طلبات التأجير في واجهة واحدة.', 'List equipment, manage availability, and receive rental requests in one place.'),
+    driverTitle: pick('للسائقين والمشغلين', 'For drivers & operators'), driverText: pick('أنشئ ملف قدراتك وتوافرك لتظهر للطلبات المناسبة عند إطلاق التطبيق.', 'Present your capabilities and availability for relevant requests when the app launches.'), learnMore: pick('اعرف المزيد', 'Learn more'),
+    equipmentKicker: pick('فئات السوق', 'Marketplace categories'), equipmentTitle: pick('معدات تناسب طبيعة العمل', 'Equipment for the work ahead'),
+    equipmentText: pick('من أعمال الحفر والرفع إلى النقل والطاقة، تبني Heavyar نقطة اكتشاف منظمة لفئات المعدات الأساسية.', 'From excavation and lifting to transport and power, Heavyar is building an organized discovery layer for essential equipment categories.'),
+    categories: isEn ? ['Excavators', 'Cranes', 'Loaders', 'Bulldozers', 'Trucks', 'Generators', 'Compressors', 'Concrete equipment'] : ['الحفارات', 'الرافعات', 'اللوادر', 'البلدوزرات', 'الشاحنات', 'المولدات', 'الضواغط', 'معدات الخرسانة'],
+    categoryNote: pick('وفئات أخرى حسب احتياج المشروع', 'And more categories for different project needs'),
+    howKicker: pick('من البحث إلى التنسيق', 'From discovery to coordination'), howTitle: pick('رحلة أبسط للعمل الثقيل', 'A simpler path for heavy work'), howText: pick('خطوات مفهومة تساعد كل طرف على معرفة ما يحتاجه وما الذي يأتي بعده.', 'A clear journey so every participant knows what they need and what comes next.'),
+    steps: isEn ? [['01', 'Discover', 'Browse equipment or driver capabilities based on the job requirement.'], ['02', 'Request', 'Share the relevant request details through a structured flow.'], ['03', 'Coordinate', 'Align on availability and next steps through the platform.']] : [['01', 'اكتشف', 'تصفح المعدات أو قدرات السائقين بما يناسب متطلبات العمل.'], ['02', 'أرسل الطلب', 'شارك تفاصيل الطلب المهمة ضمن مسار واضح ومنظم.'], ['03', 'نسّق', 'تابع التوافر والخطوات التالية من خلال المنصة.']],
+    trustKicker: pick('الثقة أولاً', 'Trust by design'), trustTitle: pick('منظومة مهنية تُبنى للسوق الحقيقي', 'A professional marketplace built for real work'), trustText: pick('Heavyar منصة سعودية قادمة تركز على وضوح الحسابات والعروض، حماية الخصوصية، وتنظيم التواصل بين الأطراف.', 'Heavyar is an upcoming Saudi platform focused on clear profiles and listings, privacy controls, and organized communication between participants.'),
+    trustPoints: isEn ? ['Account and listing policies', 'Privacy-conscious communication', 'Saudi-first, GCC-ready foundation'] : ['سياسات واضحة للحسابات والعروض', 'تواصل يراعي الخصوصية', 'انطلاقة سعودية بجاهزية خليجية'],
+    trustCardLabel: pick('مصمم ليجمع', 'Designed to connect'), trustCardTitle: pick('المعدة المناسبة، الشخص المناسب، والطلب المناسب.', 'The right equipment, the right people, and the right request.'),
+    appEyebrow: pick('الخطوة القادمة', 'What comes next'), appTitle: pick('تطبيق Heavyar قادم قريباً', 'The Heavyar app is coming soon'), appText: pick('نعمل على تجربة تربط سوق المعدات الثقيلة السعودي في منصة واحدة احترافية وسهلة الاستخدام.', 'We are building a professional, easy-to-use platform for Saudi Arabia’s heavy-equipment marketplace.'),
+    faqKicker: pick('إجابات واضحة', 'Straight answers'), faqTitle: pick('الأسئلة الشائعة', 'Frequently asked questions'),
+    earlyTitle: pick('كن من أوائل مستخدمي Heavyar', 'Be among the first'), earlySubtitle: pick('سجل للوصول المبكر واحصل على إشعار عند إطلاق التطبيق.', 'Register for Early Access and get notified when the app launches.'), eaClosedMsg: pick('التسجيل للوصول المبكر مغلق حالياً. يرجى التحقق لاحقاً.', 'Early access registration is currently closed. Please check back later.'),
+    eaEmail: pick('البريد الإلكتروني', 'Email Address'), eaName: pick('الاسم (اختياري)', 'Name (Optional)'), eaCountry: pick('الدولة (اختياري)', 'Country (Optional)'), eaLang: pick('اللغة المفضلة (اختياري)', 'Preferred Language (Optional)'), eaConsent: pick('أوافق على تلقي التحديثات ورسائل التسويق المتعلقة بإطلاق Heavyar.', "I agree to receive occasional updates and marketing communications about Heavyar's launch."), eaSubmit: pick('تسجيل', 'Register'), eaPrivacyNotice: pick('بياناتك بأمان. اقرأ', 'Your data is safe. Read our'), eaPrivacyLink: pick('سياسة الخصوصية', 'Privacy Policy'),
+    footerAbout: pick('عن Heavyar', 'About Heavyar'), footerAboutText: pick('منصة سوق سعودية قادمة تربط العملاء ومقدمي المعدات والسائقين.', 'An upcoming Saudi marketplace connecting customers, equipment providers, and drivers.'), footerLinks: pick('السياسات والروابط', 'Policies & links'), footerContact: pick('تواصل معنا', 'Contact us'), terms: pick('شروط الاستخدام', 'Terms of Service'), privacy: pick('سياسة الخصوصية', 'Privacy Policy'), deleteAcc: pick('حذف الحساب', 'Delete Account'), crInfo: pick('السجل التجاري: 7050191290', 'Commercial Registration: 7050191290'), rights: pick('© 2026 Heavyar - جميع الحقوق محفوظة', '© 2026 Heavyar. All rights reserved.')
   };
 
-  const navPath = (p) => {
-    if (p === '/') return isEn ? '/en/' : '/';
-    return isEn ? `/en${p}` : p;
-  };
+  const navPath = (p) => p === '/' ? (isEn ? '/en/' : '/') : (isEn ? `/en${p}` : p);
+  const roleCards = [['search', t.customerTitle, t.customerText, navPath('/equipment')], ['equipment', t.providerTitle, t.providerText, '#how-it-works'], ['driver', t.driverTitle, t.driverText, navPath('/drivers')]];
 
   return `
-    <nav class="site-nav" aria-label="${isEn ? 'Main Navigation' : 'الملاحة الرئيسية'}">
-      <div class="site-container nav-inner">
-        <a href="${navPath('/')}" class="nav-brand">
-          <img src="/assets/icons/brand.png" alt="${t.brand}" width="32" height="32" class="nav-logo">
-          <span class="nav-title">${t.brand}</span>
-        </a>
-        <button class="nav-toggle" aria-expanded="false" aria-label="${isEn ? 'Toggle menu' : 'تبديل القائمة'}" data-nav-toggle>
-          <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-        </button>
-        <div class="nav-menu" data-nav-menu>
-          <a href="#equipment" class="nav-link">${t.navEquipment}</a>
-          <a href="#drivers" class="nav-link">${t.navDrivers}</a>
-          <a href="#about" class="nav-link">${t.navAbout}</a>
-          <a href="${t.navLanguageLink}" class="nav-lang" hreflang="${isEn ? 'ar-SA' : 'en'}" lang="${isEn ? 'ar' : 'en'}" aria-label="${isEn ? 'عرض هذه الصفحة بالعربية' : 'View this page in English'}">
-            <svg class="nav-lang-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3Z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
-            <span>${t.navLanguage}</span>
-          </a>
-        </div>
-      </div>
-    </nav>
+    ${renderSiteHeader(locale, { key: 'home', homeAnchors: true })}
 
-    <main class="site-main">
-      <section class="section hero">
-        <div class="hero-bg"></div>
-        <div class="site-container hero-content">
-          <h1 class="hero-title">${esc(t.heroTitle)}</h1>
-          <p class="hero-subtitle">${esc(t.heroSubtitle)}</p>
-          <div class="hero-ctas">
-            <a href="#early-access" class="btn btn-primary" data-early-access-cta ${!earlyAccessEnabled ? 'style="display:none;"' : ''}>${esc(t.heroCtaPrimary)}</a>
-            <a href="#about" class="btn btn-secondary">${esc(t.heroCtaSecondary)}</a>
+    <main class="site-main" id="main-content">
+      <section class="hero" data-depth-scene>
+        <div class="hero-brand-echo" aria-hidden="true"><img src="/assets/icons/brand.png" alt="" width="512" height="512"></div>
+        <div class="hero-orb hero-orb-one" aria-hidden="true" data-depth-layer="back"></div><div class="hero-orb hero-orb-two" aria-hidden="true" data-depth-layer="mid"></div>
+        <div class="site-container hero-grid">
+          <div class="hero-copy" data-reveal><div class="eyebrow eyebrow-light">${esc(t.heroEyebrow)}</div><h1 class="hero-title">${esc(t.heroTitle)}</h1><p class="hero-subtitle">${esc(t.heroSubtitle)}</p>
+            <div class="hero-ctas"><a href="#early-access" class="btn btn-primary btn-shine" data-early-access-cta>${esc(t.heroCtaPrimary)} ${icon('arrow')}</a><a href="#marketplace" class="btn btn-ghost">${esc(t.heroCtaSecondary)}</a></div>
+            <div class="hero-status"><span class="status-dot" aria-hidden="true"></span>${esc(t.heroStatus)}</div>
           </div>
+          <div class="hero-visual" data-reveal data-reveal-delay="1" data-depth-layer="front"><div class="hero-image-frame" data-tilt><span class="hero-depth-ring" aria-hidden="true"></span><img src="/assets/images/hero.webp" alt="${esc(t.heroImageAlt)}" width="1024" height="1024" fetchpriority="high" decoding="async"><div class="hero-image-shade"></div><div class="visual-label visual-label-top" data-float-layer="1">${icon('equipment')}<span>${esc(t.roleProvider)}</span></div><div class="visual-label visual-label-bottom" data-float-layer="2">${icon('driver')}<span>${esc(t.roleDriver)}</span></div><div class="visual-search-card" data-float-layer="3"><span class="visual-search-icon">${icon('search')}</span><span><small>${pick('ابحث. قارن. اطلب.', 'Search. Compare. Request.')}</small><strong>${esc(t.roleCustomer)}</strong></span></div></div></div>
         </div>
+        <div class="site-container trust-ribbon" aria-label="${pick('مزايا المنصة', 'Platform principles')}"><span>${icon('pin')}${esc(t.trustSaudi)}</span><span>${icon('layers')}${esc(t.trustNetwork)}</span><span>${icon('check')}${esc(t.trustCoordination)}</span></div>
       </section>
 
-      <section id="about" class="section section-light">
-        <div class="site-container section-inner">
-          <h2 class="section-title">${esc(t.whatIsTitle)}</h2>
-          <p class="section-text">${esc(t.whatIsText)}</p>
-        </div>
-      </section>
+      <section id="marketplace" class="section section-cream curved-section"><div class="site-container"><div class="section-heading split-heading" data-reveal><div><p class="eyebrow">${esc(t.introKicker)}</p><h2 class="section-title">${esc(t.introTitle)}</h2></div><p class="section-text">${esc(t.introText)}</p></div><div class="role-grid">${roleCards.map(([iconName, title, text, href], index) => `<article class="role-card" data-reveal data-reveal-delay="${index}" data-tilt-card><div class="role-card-top"><span class="role-icon">${icon(iconName)}</span><span class="role-index">0${index + 1}</span></div><h3>${esc(title)}</h3><p>${esc(text)}</p><a href="${href}" class="text-link">${esc(t.learnMore)} ${icon('arrow')}</a></article>`).join('')}</div></div></section>
 
-      <section class="section section-dark">
-        <div class="site-container">
-          <h2 class="section-title text-center">${esc(t.howItWorksTitle)}</h2>
-          <div class="grid grid-3">
-            <div class="card hiw-card">
-              <h3>${esc(t.hiwCustomerTitle)}</h3>
-              <ol class="hiw-list">
-                ${t.hiwCustomerSteps.map(s => `<li>${esc(s)}</li>`).join('')}
-              </ol>
-            </div>
-            <div class="card hiw-card">
-              <h3>${esc(t.hiwProviderTitle)}</h3>
-              <ol class="hiw-list">
-                ${t.hiwProviderSteps.map(s => `<li>${esc(s)}</li>`).join('')}
-              </ol>
-            </div>
-            <div class="card hiw-card">
-              <h3>${esc(t.hiwDriverTitle)}</h3>
-              <ol class="hiw-list">
-                ${t.hiwDriverSteps.map(s => `<li>${esc(s)}</li>`).join('')}
-              </ol>
-            </div>
-          </div>
-        </div>
-      </section>
+      <section id="equipment" class="section section-white story-section"><div class="site-container equipment-layout"><div class="equipment-copy" data-reveal><p class="eyebrow">${esc(t.equipmentKicker)}</p><h2 class="section-title">${esc(t.equipmentTitle)}</h2><p class="section-text">${esc(t.equipmentText)}</p><div class="category-note">${icon('layers')}<span>${esc(t.categoryNote)}</span></div></div><div class="category-stage" data-reveal data-reveal-delay="1"><span class="category-stage-glow" aria-hidden="true"></span><div class="category-grid">${t.categories.map((category, index) => `<div class="category-card" data-depth-card><span>${String(index + 1).padStart(2, '0')}</span><strong>${esc(category)}</strong>${icon(index % 3 === 0 ? 'equipment' : index % 3 === 1 ? 'chart' : 'layers')}</div>`).join('')}</div></div></div></section>
 
-      <section id="equipment" class="section section-light">
-        <div class="site-container">
-          <div class="text-center section-header">
-            <h2 class="section-title">${esc(t.equipmentTitle)}</h2>
-            <p class="section-text">${esc(t.equipmentText)}</p>
-          </div>
-          <div class="tags-cloud">
-            ${t.categories.map(c => `<span class="tag">${esc(c)}</span>`).join('')}
-          </div>
-        </div>
-      </section>
+      <section id="how-it-works" class="section section-ink"><div class="site-container"><div class="section-heading centered-heading" data-reveal><p class="eyebrow eyebrow-light">${esc(t.howKicker)}</p><h2 class="section-title">${esc(t.howTitle)}</h2><p class="section-text">${esc(t.howText)}</p></div><div class="steps-grid">${t.steps.map(([number, title, text], index) => `<article class="step-card" data-reveal data-reveal-delay="${index}"><span class="step-number">${number}</span><div class="step-icon">${icon(index === 0 ? 'search' : index === 1 ? 'chart' : 'check')}</div><h3>${esc(title)}</h3><p>${esc(text)}</p></article>`).join('')}</div></div></section>
 
-      <section id="drivers" class="section section-gray">
-        <div class="site-container section-inner">
-          <h2 class="section-title">${esc(t.driverTitle)}</h2>
-          <p class="section-text">${esc(t.driverText)}</p>
-        </div>
-      </section>
+      <section id="trust" class="section section-cream trust-section"><div class="site-container trust-layout"><div class="trust-copy" data-reveal><p class="eyebrow">${esc(t.trustKicker)}</p><h2 class="section-title">${esc(t.trustTitle)}</h2><p class="section-text">${esc(t.trustText)}</p><ul class="check-list">${t.trustPoints.map(point => `<li><span>${icon('check')}</span>${esc(point)}</li>`).join('')}</ul></div><div class="trust-panel" data-reveal data-reveal-delay="1" data-tilt><span class="trust-panel-label">${esc(t.trustCardLabel)}</span><div class="trust-nodes" aria-hidden="true"><span>${icon('search')}</span><span>${icon('equipment')}</span><span>${icon('driver')}</span></div><h3>${esc(t.trustCardTitle)}</h3><span class="trust-watermark">H</span></div></div></section>
 
-      <section class="section section-light">
-        <div class="site-container">
-          <div class="grid grid-3">
-            <div class="card info-card">
-              <h3>${esc(t.providerTitle)}</h3>
-              <p>${esc(t.providerText)}</p>
-            </div>
-            <div class="card info-card">
-              <h3>${esc(t.gccTitle)}</h3>
-              <p>${esc(t.gccText)}</p>
-            </div>
-            <div class="card info-card">
-              <h3>${esc(t.trustTitle)}</h3>
-              <p>${esc(t.trustText)}</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <section class="section app-cta"><div class="site-container app-cta-inner" data-reveal><div><p class="eyebrow eyebrow-light">${esc(t.appEyebrow)}</p><h2>${esc(t.appTitle)}</h2><p>${esc(t.appText)}</p></div><div class="app-cta-actions"><div class="app-badge" aria-label="${esc(t.appTitle)}"><span>${icon('clock')}</span><strong>${pick('قريباً', 'Coming soon')}</strong><small>iOS · Android</small></div><a href="#early-access" class="btn btn-primary" data-early-access-cta>${esc(t.heroCtaPrimary)}</a></div></div></section>
 
-      <section class="section section-primary banner-app">
-        <div class="site-container text-center">
-          <h2 class="app-title">${esc(t.appTitle)}</h2>
-        </div>
-      </section>
+      <section id="early-access" class="section ea-section" data-early-access-section data-ea-initial-enabled="${earlyAccessEnabled}"><div class="site-container ea-shell" data-reveal><div class="ea-intro"><span class="ea-logo"><img src="/assets/icons/brand.png" alt="" width="92" height="92"></span><p class="eyebrow eyebrow-light">Heavyar Early Access</p><h2 class="section-title">${esc(t.earlyTitle)}</h2><p class="section-text">${esc(t.earlySubtitle)}</p><div class="ea-role-pills"><span>${icon('search')}${esc(t.roleCustomer)}</span><span>${icon('equipment')}${esc(t.roleProvider)}</span><span>${icon('driver')}${esc(t.roleDriver)}</span></div></div><div class="ea-form-panel"><div data-ea-closed-message ${earlyAccessEnabled ? 'style="display:none;"' : ''} class="ea-status error text-center">${esc(t.eaClosedMsg)}</div><form class="ea-form" data-ea-form ${!earlyAccessEnabled ? 'style="display:none;"' : ''}><div class="ea-status" data-ea-status aria-live="polite"></div><div class="form-group"><label for="ea-email">${esc(t.eaEmail)}</label><input type="email" id="ea-email" name="email" maxlength="254" autocomplete="email" required class="form-control"></div><div class="form-group"><label for="ea-name">${esc(t.eaName)}</label><input type="text" id="ea-name" name="name" maxlength="100" autocomplete="name" class="form-control"></div><div class="grid grid-2"><div class="form-group"><label for="ea-country">${esc(t.eaCountry)}</label><select id="ea-country" name="country" autocomplete="country" class="form-control"><option value="">${pick('اختر الدولة (اختياري)', 'Choose a country (optional)')}</option>${[['SA', 'السعودية', 'Saudi Arabia'], ['AE', 'الإمارات', 'UAE'], ['KW', 'الكويت', 'Kuwait'], ['QA', 'قطر', 'Qatar'], ['BH', 'البحرين', 'Bahrain'], ['OM', 'عُمان', 'Oman']].map(([code, ar, en]) => `<option value="${code}">${isEn ? en : ar}</option>`).join('')}</select></div><div class="form-group"><label for="ea-lang">${esc(t.eaLang)}</label><select id="ea-lang" name="language" class="form-control"><option value="">-</option><option value="ar">العربية</option><option value="en">English</option></select></div></div><div class="form-check"><input type="checkbox" id="ea-consent" name="consentMarketing" value="true"><label for="ea-consent">${esc(t.eaConsent)}</label></div><button type="submit" class="btn btn-primary btn-block ea-submit" data-ea-submit>${esc(t.eaSubmit)}</button><div class="ea-privacy text-center">${esc(t.eaPrivacyNotice)} <a href="${navPath('/privacy')}">${esc(t.eaPrivacyLink)}</a></div></form></div></div></section>
 
-      <section id="early-access" class="section section-light ea-section" data-early-access-section ${!earlyAccessEnabled ? 'style="display:none;"' : ''}>
-        <div class="site-container section-inner ea-container">
-          <h2 class="section-title">${esc(t.earlyTitle)}</h2>
-          <p class="section-text">${esc(t.earlySubtitle)}</p>
-          
-          <div data-ea-closed-message style="display:none;" class="ea-status error text-center">
-            ${esc(t.eaClosedMsg)}
-          </div>
-          
-          <form class="ea-form" data-ea-form>
-            <div class="ea-status" data-ea-status aria-live="polite"></div>
-            
-            <div class="form-group">
-              <label for="ea-email">${esc(t.eaEmail)}</label>
-              <input type="email" id="ea-email" name="email" maxlength="254" required class="form-control">
-            </div>
-            
-            <div class="form-group">
-              <label for="ea-name">${esc(t.eaName)}</label>
-              <input type="text" id="ea-name" name="name" maxlength="100" class="form-control">
-            </div>
-            
-            <div class="grid grid-2">
-              <div class="form-group">
-                <label for="ea-country">${esc(t.eaCountry)}</label>
-                <select id="ea-country" name="country" class="form-control">
-                  <option value="">${isEn ? 'Choose a country (optional)' : 'اختر الدولة (اختياري)'}</option>
-                  ${[['SA', 'السعودية', 'Saudi Arabia'], ['AE', 'الإمارات', 'UAE'], ['KW', 'الكويت', 'Kuwait'], ['QA', 'قطر', 'Qatar'], ['BH', 'البحرين', 'Bahrain'], ['OM', 'عُمان', 'Oman']].map(([code, ar, en]) => `<option value="${code}">${isEn ? en : ar}</option>`).join('')}
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="ea-lang">${esc(t.eaLang)}</label>
-                <select id="ea-lang" name="language" class="form-control">
-                  <option value="">-</option>
-                  <option value="ar">العربية</option>
-                  <option value="en">English</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-check">
-              <input type="checkbox" id="ea-consent" name="consentMarketing" value="true">
-              <label for="ea-consent">${esc(t.eaConsent)}</label>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block ea-submit" data-ea-submit>
-              ${esc(t.eaSubmit)}
-            </button>
-            <div class="ea-privacy text-center">
-              ${esc(t.eaPrivacyNotice)} <a href="${navPath('/privacy')}">${esc(t.eaPrivacyLink)}</a>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <section class="section section-gray">
-        <div class="site-container">
-          <h2 class="section-title text-center">${esc(t.faqTitle)}</h2>
-          <div class="faq-list">
-            ${faqList.map(faq => `
-              <details class="faq-item">
-                <summary class="faq-q">${esc(faq.question)}</summary>
-                <div class="faq-a"><p>${esc(faq.answer)}</p></div>
-              </details>
-            `).join('')}
-          </div>
-        </div>
-      </section>
+      <section class="section section-white faq-section"><div class="site-container faq-layout"><div class="faq-heading" data-reveal><p class="eyebrow">${esc(t.faqKicker)}</p><h2 class="section-title">${esc(t.faqTitle)}</h2></div><div class="faq-list" data-reveal data-reveal-delay="1">${faqList.map(faq => `<details class="faq-item"><summary class="faq-q">${esc(faq.question)}</summary><div class="faq-a"><p>${esc(faq.answer)}</p></div></details>`).join('')}</div></div></section>
+      <section class="final-cta"><div class="site-container final-cta-inner" data-reveal><div><p class="eyebrow eyebrow-light">${esc(t.appEyebrow)}</p><h2>${esc(t.earlyTitle)}</h2><p>${esc(t.earlySubtitle)}</p></div><a href="#early-access" class="btn btn-primary btn-shine" data-early-access-cta>${esc(t.heroCtaPrimary)} ${icon('arrow')}</a></div></section>
     </main>
 
-    <footer class="site-footer">
-      <div class="site-container">
-        <div class="footer-grid">
-          <div class="footer-col">
-            <h3>${esc(t.footerAbout)}</h3>
-            <p>${esc(t.footerAboutText)}</p>
-          </div>
-          <div class="footer-col">
-            <h3>${esc(t.footerLinks)}</h3>
-            <ul class="footer-links">
-              <li><a href="${navPath('/terms')}">${esc(t.terms)}</a></li>
-              <li><a href="${navPath('/privacy')}">${esc(t.privacy)}</a></li>
-              <li><a href="${navPath('/account-deletion')}">${esc(t.deleteAcc)}</a></li>
-              <li><a href="${navPath('/refund-policy')}">${isEn ? 'Cancellation & refunds' : 'الإلغاء والاسترجاع'}</a></li>
-              <li><a href="${navPath('/disputes')}">${isEn ? 'Disputes' : 'النزاعات'}</a></li>
-              <li><a href="${navPath('/provider-terms')}">${isEn ? 'Provider terms' : 'شروط مقدمي الخدمة'}</a></li>
-              <li><a href="${navPath('/verification')}">${isEn ? 'Verification' : 'التحقق'}</a></li>
-              <li><a href="${navPath('/restricted-activities')}">${isEn ? 'Restricted activities' : 'الأنشطة المقيدة'}</a></li>
-            </ul>
-          </div>
-          <div class="footer-col">
-            <h3>${esc(t.footerContact)}</h3>
-            <p><a href="mailto:heavyar.official@gmail.com">heavyar.official@gmail.com</a></p>
-            <div class="footer-cert">
-              <span class="cr-text">${esc(t.crInfo)}</span>
-            </div>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <p>${esc(t.rights)}</p>
-        </div>
-      </div>
-    </footer>
-    <script src="/assets/site.js"></script>
-    <div class="sbc-verify-seal"
-         data-token="eTlYY0g1Z0x3OUM2QmFkdmUyNk5rZz09"
-         data-position="bottom-left"></div>
-    <script src="/assets/seal-lifecycle.js"></script>
-    <script src="https://eauthenticate.saudibusiness.gov.sa/EAuthSealApi/seal.js" async></script>
+    ${renderSiteFooter(locale)}
+    ${renderSiteScripts()}
   `;
 }

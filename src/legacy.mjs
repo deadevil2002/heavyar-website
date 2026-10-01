@@ -82,3 +82,14 @@ export function renderPreservedDocument(filename) {
     return `${name}=${quote}${target}${suffix}${quote}`;
   });
 }
+
+export function renderPreservedBody(filename) {
+  const html = renderPreservedDocument(filename);
+  const start = html.search(/<div class="legal-page">/i);
+  const footerMarker = html.search(/<!--\s*Footer\s*-->/i);
+  const body = start >= 0 && footerMarker > start ? html.slice(start, footerMarker).trim() : null;
+  if (!body) throw new Error(`Could not isolate preserved content for ${filename}`);
+  return body
+    .replace(/^<div class="legal-page">/i, '<main class="legal-page preserved-page" id="main-content">')
+    .replace(/<\/div>\s*$/i, '</main>');
+}

@@ -1,7 +1,7 @@
-import { renderHome } from './site.mjs';
+import { renderHome, renderSiteFooter, renderSiteHeader, renderSiteScripts } from './site.mjs';
 import { getSeo, LEGACY_ROUTES, pageFor, renderHead, robotsTxt, ROUTES, sitemapXml, escapeHtml } from './seo.mjs';
 import { FALLBACK_REASON } from './fallback.mjs';
-import { legacySource, renderLegacy, renderPreservedDocument } from './legacy.mjs';
+import { legacySource, renderLegacy, renderPreservedBody } from './legacy.mjs';
 import { hasLegalPage, renderLegalPage } from './legal-pages.mjs';
 
 const API_ORIGIN = 'https://heavyar-api.heavyar-official.workers.dev';
@@ -42,22 +42,16 @@ function shell(locale, head, body, key) {
   return `<!doctype html><html lang="${locale}" dir="${dir}"><head>${head}</head><body>${body}${key === 'account-deletion' ? '<script type="module" src="/delete-account.js"></script>' : ''}</body></html>`;
 }
 
-function languageRoute(locale, key) {
-  const ar = locale === 'ar-SA';
-  const other = ar ? (key === 'home' ? '/en/' : `/en/${key}`) : (key === 'home' ? '/' : `/${key}`);
-  return `<a class="nav-lang" href="${other}" hreflang="${ar ? 'en' : 'ar-SA'}" lang="${ar ? 'en' : 'ar'}" aria-label="${ar ? 'View this page in English' : 'عرض هذه الصفحة بالعربية'}"><svg class="nav-lang-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3Z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>${ar ? 'English' : 'العربية'}</span></a>`;
-}
-
-function legalNavigation(locale, key) {
-  const ar = locale === 'ar-SA', prefix = ar ? '' : '/en';
-  return `<nav class="navbar"><div class="container"><a href="${prefix}/" class="navbar-brand"><img src="/assets/images/logo.png" alt="Heavyar" class="navbar-logo"><span class="navbar-title">Heavyar</span></a><div class="footer-links"><a href="${prefix}/privacy">${ar ? 'الخصوصية' : 'Privacy'}</a><a href="${prefix}/terms">${ar ? 'الشروط' : 'Terms'}</a><a href="${prefix}/account-deletion">${ar ? 'حذف الحساب' : 'Delete account'}</a>${languageRoute(locale, key)}</div></div></nav>`;
+function brandedPage(locale, key, content) {
+  const siteLocale = locale === 'en' ? 'en' : 'ar-SA';
+  return `${renderSiteHeader(siteLocale, { key })}${content}${renderSiteFooter(siteLocale)}${renderSiteScripts()}`;
 }
 
 function routeBody(key, locale, page) {
   const ar = locale === 'ar-SA';
   const sections = {
     about: ar ? ['عن Heavyar', 'Heavyar منصة سوق للمعدات الثقيلة تربط العملاء ومقدمي المعدات والسائقين، وتساعدهم على البحث وإدارة الطلبات والتنسيق بكفاءة.'] : ['About Heavyar', 'Heavyar is a heavy-equipment marketplace platform connecting customers, equipment providers, and drivers for discovery, request management, and efficient coordination.'],
-    equipment: ar ? ['اكتشف المعدات', 'استكشف فئات المعدات المعتمدة مثل الحفارات والرافعات واللوادر والجرافات والشاحنات والمولدات والضواغط ومعدات الخرسانة، دون عرض مخزون أو أعداد غير موثقة.'] : ['Discover equipment', 'Explore established categories such as excavators, cranes, loaders, bulldozers, trucks, generators, compressors, and concrete equipment—without unverified inventory or counts.'],
+    equipment: ar ? ['اكتشف المعدات', 'استكشف فئات المعدات المعتمدة مثل الحفارات والرافعات واللوادر والجرافات والشاحنات والمولدات والضواغط ومعدات الخرسانة، دون عرض مخزون أو أعداد غير موثقة.'] : ['Discover equipment', 'Explore established categories such as excavators, cranes, loaders, bulldozers, trucks, generators, compressors, and concrete equipment, without unverified inventory or counts.'],
     drivers: ar ? ['اكتشاف السائقين', 'ابحث عن سائقي المعدات حسب القدرات والموقع والتوفر، ثم أرسل طلباً عبر مسار آمن دون كشف بيانات الاتصال للعامة.'] : ['Driver discovery', 'Find equipment drivers by capability, location, and availability, then use a secure request flow without exposing contact details publicly.'],
     help: ar ? ['كيف يمكننا مساعدتك؟', 'تعرّف على المنصة أو تواصل مع الدعم العام عبر heavyar.official@gmail.com.'] : ['How can we help?', 'Learn about the platform or contact public support at heavyar.official@gmail.com.'],
     'early-access': ar ? ['الوصول المبكر', 'يظهر نموذج التسجيل هنا فقط عندما تفعّل Heavyar الوصول المبكر.'] : ['Early access', 'Registration appears here only when Heavyar enables early access.'],
@@ -65,7 +59,13 @@ function routeBody(key, locale, page) {
   const [, description] = sections[key];
   const heading = page.heading;
   const faqs = page.faqs.length ? `<section class="route-faq"><h2>${ar ? 'الأسئلة الشائعة' : 'Frequently asked questions'}</h2>${page.faqs.map(f => `<details><summary>${escapeHtml(f.question)}</summary><p>${escapeHtml(f.answer)}</p></details>`).join('')}</section>` : '';
-  return `<header class="simple-header"><a href="${ar ? '/' : '/en/'}">Heavyar</a>${languageRoute(locale, key)}</header><main class="route-main"><p class="eyebrow">Heavyar</p><h1>${escapeHtml(heading)}</h1><p>${escapeHtml(description)}</p>${key === 'early-access' ? '<section id="early-access-root" data-early-access="false" hidden></section>' : ''}${faqs}</main>`;
+  return `<main class="content-page" id="main-content"><header class="inner-hero"><div class="site-container inner-hero-copy"><p class="eyebrow eyebrow-light">Heavyar</p><h1>${escapeHtml(heading)}</h1><p>${escapeHtml(description)}</p></div></header><div class="site-container route-content">${key === 'early-access' ? '<section id="early-access-root" data-early-access="false" hidden></section>' : ''}${faqs}</div></main>`;
+}
+
+function notFound(locale) {
+  const en = locale === 'en';
+  const home = en ? '/en/' : '/';
+  return brandedPage(locale, 'home', `<main class="not-found-page" id="main-content"><div class="site-container not-found-card"><span class="not-found-code">404</span><p class="eyebrow">${en ? 'Page not found' : 'الصفحة غير موجودة'}</p><h1>${en ? 'This route is not available' : 'هذا الرابط غير متاح'}</h1><p>${en ? 'The page may have moved or the address may be incorrect.' : 'ربما نُقلت الصفحة أو أن العنوان غير صحيح.'}</p><a class="btn btn-primary" href="${home}">${en ? 'Return home' : 'العودة للرئيسية'}</a></div></main>`);
 }
 
 function devRewrite(html, basePath) {
@@ -115,14 +115,16 @@ export async function handleRequest(request, env = {}, options = {}) {
   const legalMatch = legalPathname.match(/^\/(en\/)?(terms|privacy|refund-policy|disputes|provider-terms|verification|restricted-activities)\/?$/);
   if (legalMatch && hasLegalPage(legalMatch[2])) {
     const locale = legalMatch[1] ? 'en' : 'ar-SA';
-    const body = renderLegalPage(legalMatch[2], locale === 'en' ? 'en' : 'ar');
+    const body = brandedPage(locale, legalMatch[2], renderLegalPage(legalMatch[2], locale === 'en' ? 'en' : 'ar'));
     const canonical = `https://heavyar.com${locale === 'en' ? '/en' : ''}/${legalMatch[2]}`;
-    const head = `<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${legalMatch[2]} – Heavyar</title><link rel="canonical" href="${canonical}"><link rel="stylesheet" href="/styles.css">`;
+    const head = `<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${legalMatch[2]} | Heavyar</title><link rel="canonical" href="${canonical}"><link rel="stylesheet" href="/assets/site.css">`;
     return text(request.method === 'HEAD' ? null : shell(locale, head, body, legalMatch[2]), 200, 'text/html; charset=utf-8', { ...pageSecurityHeaders(Boolean(basePath)), 'Cache-Control': 'public, max-age=60' });
   }
   const preservedFilename = PRESERVED_DOCUMENT_ROUTES[pathname];
   if (preservedFilename) {
-    const html = devRewrite(renderPreservedDocument(preservedFilename), basePath);
+    const content = renderPreservedBody(preservedFilename);
+    const head = `<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Heavyar</title><link rel="stylesheet" href="/assets/site.css">`;
+    const html = devRewrite(shell('ar-SA', head, brandedPage('ar-SA', 'home', content), 'preserved'), basePath);
     return text(request.method === 'HEAD' ? null : html, 200, 'text/html; charset=utf-8', {
       ...pageSecurityHeaders(Boolean(basePath)),
       'Cache-Control': 'public, max-age=60',
@@ -155,10 +157,11 @@ export async function handleRequest(request, env = {}, options = {}) {
       }
     }
     else if (key === 'account-deletion') {
-      body = `${legalNavigation(locale, key)}${await renderLegacy(key, locale, legacySource(key))}`;
+      const accountContent = (await renderLegacy(key, locale, legacySource(key))).replace('<main ', '<main id="main-content" ');
+      body = brandedPage(locale, key, accountContent);
     }
-    else body = routeBody(key, locale, page);
-    const extraHead = ['privacy', 'terms', 'account-deletion'].includes(key) ? '<link rel="stylesheet" href="/styles.css">' : '';
+    else body = brandedPage(locale, key, routeBody(key, locale, page));
+    const extraHead = key === 'home' || key === 'early-access' ? '' : '<link rel="stylesheet" href="/assets/site.css">';
     const apiBase = basePath || API_ORIGIN;
     const integrationHead = `<meta name="heavyar-api-base" content="${escapeHtml(apiBase)}">`;
     const html = devRewrite(shell(locale, `${renderHead(page, payload.global)}${extraHead}${integrationHead}`, body, key), basePath);
@@ -180,5 +183,7 @@ export async function handleRequest(request, env = {}, options = {}) {
     const response = await options.asset(assetPath, request);
     return request.method === 'HEAD' ? new Response(null, { status: response.status, headers: response.headers }) : response;
   }
-  return text(request.method === 'HEAD' ? null : 'Not found', 404);
+  const locale = pathname === '/en' || pathname.startsWith('/en/') ? 'en' : 'ar-SA';
+  const head = `<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>404 | Heavyar</title><meta name="robots" content="noindex,nofollow"><link rel="stylesheet" href="/assets/site.css">`;
+  return text(request.method === 'HEAD' ? null : devRewrite(shell(locale, head, notFound(locale), '404'), basePath), 404, 'text/html; charset=utf-8', pageSecurityHeaders(Boolean(basePath)));
 }
