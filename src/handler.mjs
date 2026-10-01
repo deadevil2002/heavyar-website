@@ -37,9 +37,16 @@ function pageSecurityHeaders(development = false) {
   };
 }
 
+function typographyHead(locale) {
+  const family = locale === 'ar-SA'
+    ? 'IBM+Plex+Sans+Arabic:wght@400;500;600;700'
+    : 'IBM+Plex+Sans:wght@400;500;600;700';
+  return `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${family}&amp;display=swap">`;
+}
+
 function shell(locale, head, body, key) {
   const dir = locale === 'ar-SA' ? 'rtl' : 'ltr';
-  return `<!doctype html><html lang="${locale}" dir="${dir}"><head>${head}</head><body>${body}${key === 'account-deletion' ? '<script type="module" src="/delete-account.js"></script>' : ''}</body></html>`;
+  return `<!doctype html><html lang="${locale}" dir="${dir}"><head>${typographyHead(locale)}${head}</head><body>${body}${key === 'account-deletion' ? '<script type="module" src="/delete-account.js"></script>' : ''}</body></html>`;
 }
 
 function brandedPage(locale, key, content) {

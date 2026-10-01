@@ -522,3 +522,26 @@ test('process cards keep responsive separation after reveal motion', async () =>
   assert.match(css, /@media \(max-width: 820px\)[\s\S]*?\.steps-grid \{ grid-template-columns: 1fr; gap: 24px; \}/);
   assert.match(css, /\.js-reveal \.step-card\[data-reveal\]:nth-child\(2\)\.is-visible \{ transform: none; \}/);
 });
+
+test('each locale loads only its IBM Plex family and supported weights', async () => {
+  for (const [path, expected, excluded] of [
+    ['/', 'IBM\\+Plex\\+Sans\\+Arabic:wght@400;500;600;700', 'IBM\\+Plex\\+Sans:wght'],
+    ['/en/', 'IBM\\+Plex\\+Sans:wght@400;500;600;700', 'IBM\\+Plex\\+Sans\\+Arabic'],
+  ]) {
+    resetSeoCache();
+    const html = await (await handleRequest(new Request(`https://heavyar.com${path}`), {}, {
+      fetcher: async () => Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 }),
+    })).text();
+    assert.match(html, new RegExp(expected));
+    assert.doesNotMatch(html, new RegExp(excluded));
+    assert.match(html, /fonts\.gstatic\.com" crossorigin/);
+    assert.match(html, /display=swap/);
+  }
+
+  const css = await readFile(new URL('../assets/site.css', import.meta.url), 'utf8');
+  assert.match(css, /--font-ar: "IBM Plex Sans Arabic"/);
+  assert.match(css, /--font-en: "IBM Plex Sans"/);
+  for (const match of css.matchAll(/font-weight:\s*(\d+)/g)) {
+    assert.match(match[1], /^(400|500|600|700)$/);
+  }
+});
