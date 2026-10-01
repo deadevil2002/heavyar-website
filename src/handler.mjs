@@ -2,6 +2,7 @@ import { renderHome } from './site.mjs';
 import { getSeo, LEGACY_ROUTES, pageFor, renderHead, robotsTxt, ROUTES, sitemapXml, escapeHtml } from './seo.mjs';
 import { FALLBACK_REASON } from './fallback.mjs';
 import { legacySource, renderLegacy, renderPreservedDocument } from './legacy.mjs';
+import { hasLegalPage, renderLegalPage } from './legal-pages.mjs';
 
 const API_ORIGIN = 'https://heavyar-api.heavyar-official.workers.dev';
 const API_RULES = {
@@ -110,6 +111,15 @@ export async function handleRequest(request, env = {}, options = {}) {
     return text(request.method === 'HEAD' ? null : 'Not found', 404);
   }
   if (!['GET', 'HEAD'].includes(request.method)) return text('Method not allowed', 405, 'text/plain; charset=utf-8', { Allow: 'GET, HEAD' });
+  const legalPathname = ({ '/privacy-policy': '/privacy', '/en/privacy-policy': '/en/privacy', '/terms-of-service': '/terms', '/en/terms-of-service': '/en/terms' })[pathname] || pathname;
+  const legalMatch = legalPathname.match(/^\/(en\/)?(terms|privacy|refund-policy|disputes|provider-terms|verification|restricted-activities)\/?$/);
+  if (legalMatch && hasLegalPage(legalMatch[2])) {
+    const locale = legalMatch[1] ? 'en' : 'ar-SA';
+    const body = renderLegalPage(legalMatch[2], locale === 'en' ? 'en' : 'ar');
+    const canonical = `https://heavyar.com${locale === 'en' ? '/en' : ''}/${legalMatch[2]}`;
+    const head = `<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${legalMatch[2]} – Heavyar</title><link rel="canonical" href="${canonical}"><link rel="stylesheet" href="/styles.css">`;
+    return text(request.method === 'HEAD' ? null : shell(locale, head, body, legalMatch[2]), 200, 'text/html; charset=utf-8', { ...pageSecurityHeaders(Boolean(basePath)), 'Cache-Control': 'public, max-age=60' });
+  }
   const preservedFilename = PRESERVED_DOCUMENT_ROUTES[pathname];
   if (preservedFilename) {
     const html = devRewrite(renderPreservedDocument(preservedFilename), basePath);
@@ -144,7 +154,7 @@ export async function handleRequest(request, env = {}, options = {}) {
         body = body.replace(/(<h1 class="hero-title">)[\s\S]*?(<\/h1>)/, `$1${escapeHtml(page.heading)}$2`);
       }
     }
-    else if (['privacy', 'terms', 'account-deletion'].includes(key)) {
+    else if (key === 'account-deletion') {
       body = `${legalNavigation(locale, key)}${await renderLegacy(key, locale, legacySource(key))}`;
     }
     else body = routeBody(key, locale, page);

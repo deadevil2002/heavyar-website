@@ -293,6 +293,11 @@ export function renderHome({ locale, faqs = [], earlyAccessEnabled = false }) {
               <li><a href="${navPath('/terms')}">${esc(t.terms)}</a></li>
               <li><a href="${navPath('/privacy')}">${esc(t.privacy)}</a></li>
               <li><a href="${navPath('/account-deletion')}">${esc(t.deleteAcc)}</a></li>
+              <li><a href="${navPath('/refund-policy')}">${isEn ? 'Cancellation & refunds' : 'الإلغاء والاسترجاع'}</a></li>
+              <li><a href="${navPath('/disputes')}">${isEn ? 'Disputes' : 'النزاعات'}</a></li>
+              <li><a href="${navPath('/provider-terms')}">${isEn ? 'Provider terms' : 'شروط مقدمي الخدمة'}</a></li>
+              <li><a href="${navPath('/verification')}">${isEn ? 'Verification' : 'التحقق'}</a></li>
+              <li><a href="${navPath('/restricted-activities')}">${isEn ? 'Restricted activities' : 'الأنشطة المقيدة'}</a></li>
             </ul>
           </div>
           <div class="footer-col">

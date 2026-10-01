@@ -72,7 +72,7 @@ test('clean and legacy account-deletion routes preserve authenticated flow', asy
   }
 });
 
-test('legal routes use immutable sources without fetching Pages assets', async () => {
+test('legal routes use repository sources without fetching Pages assets', async () => {
   resetSeoCache();
   let assetCalls = 0;
   const env = { ASSETS: { fetch: async () => { assetCalls++; return new Response(null, { status: 302 }); } } };
@@ -227,7 +227,7 @@ test('all public endpoint JSON-LD shapes are accepted when typed and visible', (
 
 test('legacy source hashes are pinned and altered source is rejected', async () => {
   for (const [key, file] of [['privacy', 'privacy.html'], ['terms', 'terms.html'], ['account-deletion', 'delete-account.html']]) {
-    const source = await readFile(new URL(`../${file}`, import.meta.url), 'utf8');
+    const source = (await readFile(new URL(`../${file}`, import.meta.url), 'utf8')).replace(/\r\n/g, '\n');
     assert.equal(legacySource(key), source);
     const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(source));
     const actual = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
@@ -250,7 +250,7 @@ test('CMS heading is rendered on home and content routes while legal H1 remains 
   assert.match(await (await handleRequest(new Request('https://heavyar.com/en/equipment'), {}, options)).text(), /<h1>Configured equipment heading<\/h1>/);
   resetSeoCache();
   const legalOptions = { ...options, legacyLoader: file => readFile(new URL(`../${file}`, import.meta.url), 'utf8') };
-  assert.match(await (await handleRequest(new Request('https://heavyar.com/terms'), {}, legalOptions)).text(), /<h1>شروط وأحكام استخدام منصة Heavyar<\/h1>/);
+  assert.match(await (await handleRequest(new Request('https://heavyar.com/terms'), {}, legalOptions)).text(), /<h1>شروط استخدام Heavyar<\/h1>/);
 
   resetSeoCache();
   const audited = await handleRequest(new Request('https://heavyar.com/en/'), {}, { fetcher: async () => Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 }) });
@@ -417,4 +417,27 @@ test('static landing surface keeps the CR and official seal while removing the i
   assert.equal((html.match(/class="language-toggle language-route"/g) || []).length, 1);
   assert.match(html, /src="\/assets\/seal-lifecycle\.js"/);
   assert.doesNotMatch(html, /sbc-certificate\.png/);
+});
+
+test('all required legal routes are available in Arabic and English', async () => {
+  for (const key of ['terms', 'privacy', 'account-deletion', 'refund-policy', 'disputes', 'provider-terms', 'verification', 'restricted-activities']) {
+    for (const prefix of ['', '/en']) {
+      const response = await handleRequest(new Request(`https://heavyar.com${prefix}/${key}`), {}, { fetcher: async () => new Response('{}', { status: 404 }) });
+      assert.equal(response.status, 200, `${prefix}/${key}`);
+      assert.match(await response.text(), /Heavyar/);
+    }
+  }
+});
+
+test('legal policies preserve compliance guardrails and approved V1 cancellation rules', async () => {
+  const refund = await (await handleRequest(new Request('https://heavyar.com/en/refund-policy'))).text();
+  assert.doesNotMatch(refund, /OWNER DECISION REQUIRED/);
+  assert.match(refund, /does not promise guaranteed or instant refunds/i);
+  assert.match(refund, /free of charge after provider acceptance and before payment/i);
+  assert.match(refund, /no automatic fixed refund percentage/i);
+  const verification = await (await handleRequest(new Request('https://heavyar.com/en/verification'))).text();
+  assert.match(verification, /not government endorsement/i);
+  const restricted = await (await handleRequest(new Request('https://heavyar.com/en/restricted-activities'))).text();
+  assert.match(restricted, /truck-rental-without-driver/i);
+  assert.match(restricted, /not automatically a truck-rental licence/i);
 });

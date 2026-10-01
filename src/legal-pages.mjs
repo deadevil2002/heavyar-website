@@ -1,0 +1,86 @@
+const pages = {
+  terms: {
+    title: ['شروط استخدام Heavyar', 'Heavyar Terms of Use'],
+    intro: ['Heavyar سوق تقني يربط العملاء ومقدمي المعدات والسائقين، ولا تُعد جهة حكومية أو جهة ترخيص. تسري الحقوق والالتزامات النظامية غير القابلة للتنازل رغم أي نص هنا.', 'Heavyar is a technology marketplace connecting customers, equipment providers and drivers. It is not a government or licensing authority. Non-waivable legal rights and duties continue to apply.'],
+    sections: [
+      ['الحساب والأهلية', 'Accounts and eligibility', 'يجب تقديم بيانات صحيحة، وحماية الحساب، وامتلاك الأهلية والصلاحية لتمثيل المنشأة. يجوز تعليق الحسابات المخالفة مع حفظ الحقوق النظامية.', 'Provide accurate information, protect the account, and have authority to represent any business. Non-compliant accounts may be suspended subject to applicable rights.'],
+      ['واجبات الأطراف', 'Duties of the parties', 'على العميل تحديد الطلب والموقع وظروف العمل، وعلى مقدم الخدمة إثبات الملكية أو التفويض والتراخيص اللازمة، وعلى السائق أو المشغل الاحتفاظ بالمؤهلات المطلوبة والالتزام بالسلامة.', 'Customers must accurately describe the request, site and conditions. Providers must hold ownership or authority and required licences. Drivers/operators must maintain required qualifications and safety compliance.'],
+      ['الطلبات والتسعير والعقود', 'Requests, pricing and contracts', 'تعرض المنصة الأسعار واللقطات التجارية المثبتة للطلب. القبول ينشئ التزاماً بين الأطراف وفق تفاصيل الطلب وأي عقد مطبق. لا يجوز إعادة تسعير السجل التاريخي من سعر عرض حالي.', 'The platform presents prices and locked commercial snapshots. Acceptance creates obligations between the parties under the request and applicable contract. Historical transactions are not repriced from current listings.'],
+      ['الإلغاء والاسترجاع', 'Cancellation and refunds', 'تخضع الحالات لسياسة الإلغاء والاسترجاع المنشورة. لا تضمن Heavyar استرجاعاً فورياً أو تلقائياً، وتظل حقوق المستهلك النظامية نافذة.', 'Cases follow the published cancellation and refund policy. Heavyar does not promise instant or automatic refunds; statutory consumer rights remain applicable.'],
+      ['المعدات والحوادث', 'Equipment, damage and incidents', 'يجب الاتفاق على التسليم والفحص والتأمين والتشغيل والأعطال والأضرار. الحوادث والمخالفات المرورية والمسائل التأمينية تُحال للجهة المختصة ولا تفصل فيها Heavyar قضائياً.', 'Parties must address delivery, inspection, insurance, operation, breakdown and damage. Accidents, traffic violations and insurance matters belong with the competent authority; Heavyar does not adjudicate them.'],
+      ['المحتوى والتقييمات', 'Content and reviews', 'يجب أن تكون العروض والصور والتقييمات مشروعة وصادقة. يجوز للمنصة تقييد المحتوى المضلل أو المسيء مع الاحتفاظ بسجلات التدقيق اللازمة.', 'Listings, media and reviews must be lawful and genuine. Misleading or abusive content may be restricted while necessary audit records are retained.'],
+      ['التعليق والإنهاء والحذف', 'Suspension, termination and deletion', 'يمكن طلب حذف الحساب من التطبيق أو صفحة حذف الحساب. قد تُحتفظ سجلات معاملات أو محاسبة أو نزاعات لازمة بصورة مقيدة ومحدودة وفق المتطلبات النظامية.', 'Account deletion can be requested in-app or through the deletion page. Required transaction, accounting or dispute records may be retained in restricted and minimized form as legally necessary.'],
+      ['الملكية الفكرية والقانون', 'Intellectual property and law', 'تحمى علامات وبرمجيات Heavyar وحقوق المستخدمين. تخضع العلاقة لأنظمة المملكة العربية السعودية وتُرفع النزاعات للجهات السعودية المختصة بعد محاولة الدعم حيث يناسب.', 'Heavyar software, marks and user rights are protected. Saudi law applies and disputes may be taken to the competent Saudi authority after support review where appropriate.'],
+    ],
+  },
+  privacy: {
+    title: ['سياسة خصوصية Heavyar', 'Heavyar Privacy Policy'],
+    intro: ['توضح هذه السياسة معالجة البيانات وفق مبادئ نظام حماية البيانات الشخصية السعودي، بما في ذلك تحديد الغرض وتقليل البيانات والأمن وحقوق صاحب البيانات.', 'This policy explains processing under Saudi Personal Data Protection Law principles, including purpose limitation, data minimization, security and data-subject rights.'],
+    sections: [
+      ['البيانات', 'Data categories', 'قد نعالج بيانات الهوية والتواصل والملف والموقع، وبيانات المعدات والصور، والمنشأة والتراخيص ومستندات التحقق، والطلبات والتأجير والمحادثات والتقييمات والإشعارات، والسجلات التقنية والأمنية، والسجلات المتعلقة بالدفع عند استخدامه.', 'We may process identity, contact, profile and location data; equipment and media; business, licence and verification records; requests, rentals, chats, ratings and notifications; technical/security logs; and payment-related records when used.'],
+      ['الأغراض والمسوغ', 'Purposes and legal basis', 'نستخدم البيانات لإنشاء الحساب وتنفيذ طلب المستخدم وتشغيل السوق ومنع الاحتيال والتحقق والدعم والامتثال وحماية الحقوق. يعتمد المسوغ على تنفيذ الخدمة أو الموافقة أو الالتزام النظامي أو المصلحة المشروعة وفق الحالة.', 'Data supports account creation, requested services, marketplace operation, fraud prevention, verification, support, compliance and protection of rights. The basis may be service performance, consent, legal obligation or legitimate interest as applicable.'],
+      ['المستلمون والمعالجون', 'Recipients and processors', 'تُشارك البيانات بالقدر اللازم مع الطرف المقابل في المعاملة ومقدمي الاستضافة والمصادقة والتخزين والصور والبريد والإشعارات والدفع عند تفعيله، أو مع الجهات المختصة عند وجود مسوغ نظامي. تشمل الخدمات الموجودة Firebase وCloudflare وCloudinary وResend.', 'Necessary data may be shared with transaction counterparties, hosting, authentication, storage, media, email, notification and activated payment processors, or competent authorities where legally justified. Services present include Firebase, Cloudflare, Cloudinary and Resend.'],
+      ['النقل خارج المملكة', 'Cross-border processing', 'قد تعالج بعض الجهات التقنية البيانات خارج المملكة بحسب موقع بنيتها. يتم تقييم النقل وتطبيق الضمانات المطلوبة قبل الاعتماد عليه، ولا تعني هذه السياسة أن كل البيانات تُنقل.', 'Some technology providers may process data outside Saudi Arabia depending on infrastructure. Transfers must be assessed and protected as required; this does not mean every category is transferred.'],
+      ['الاحتفاظ والإتلاف', 'Retention and destruction', 'نحتفظ بالبيانات للمدة اللازمة للغرض والالتزامات والمعاملات والنزاعات، ثم نحذفها أو نخفي هويتها أو نقيدها. لا تحدد هذه السياسة مدة نظامية غير معتمدة.', 'Data is retained only as needed for purpose, obligations, transactions and disputes, then deleted, anonymized or restricted. This policy does not invent an unapproved statutory period.'],
+      ['الحقوق والتواصل', 'Rights and contact', 'يمكن طلب الوصول أو التصحيح أو الحذف أو الاستفسار عبر إعدادات الحساب أو heavyar.official@gmail.com، مع التحقق من الهوية والاستثناءات النظامية. يمكن رفع شكوى للجهة المختصة وفق النظام.', 'Access, correction, deletion or questions may be requested in account settings or at heavyar.official@gmail.com, subject to identity checks and lawful exceptions. Complaints may be raised to the competent authority.'],
+    ],
+  },
+  'refund-policy': {
+    title: ['سياسة الإلغاء والاسترجاع', 'Cancellation and Refund Policy'],
+    intro: ['تعكس هذه السياسة الوظائف الحالية ولا تَعِد باسترجاع مضمون أو فوري.', 'This policy reflects current product behavior and does not promise guaranteed or instant refunds.'],
+    sections: [
+      ['قبل قبول مقدم الخدمة', 'Before provider acceptance', 'يمكن للعميل إلغاء الطلب المعلق مجاناً من خلال التطبيق. لا تفرض Heavyar رسوم إلغاء في هذه المرحلة.', 'The customer may cancel a pending request in-app free of charge. Heavyar imposes no cancellation fee at this stage.'],
+      ['بعد القبول وقبل الدفع', 'After acceptance and before payment', 'يمكن للعميل الإلغاء مجاناً وفق سياسة Heavyar الحالية للإصدار الأول، ولا تفرض Heavyar رسوم إلغاء في هذه المرحلة.', 'Under Heavyar’s current V1 policy, the customer may cancel free of charge after provider acceptance and before payment. Heavyar imposes no cancellation fee at this stage.'],
+      ['بعد الدفع', 'After payment', 'لا توجد نسبة استرجاع تلقائية ثابتة. تعتمد أهلية الاسترجاع ومبلغه على حالة الطلب أو التأجير، وبدء الخدمة، وما نُفّذ فعلياً، والتكاليف الفعلية غير القابلة للاسترداد، وأي رسوم معلنة لمزود الدفع، وظروف الإلغاء، ومراجعة الدعم أو النزاع.', 'There is no automatic fixed refund percentage. Eligibility and amount depend on request or rental state, whether service began, services actually provided, actual non-recoverable costs, disclosed payment-provider charges, cancellation circumstances, and support or dispute review.'],
+      ['إلغاء مقدم الخدمة قبل بدء الخدمة', 'Provider cancellation before service starts', 'إذا ألغى مقدم الخدمة قبل بدء الخدمة، يستحق العميل إعادة المبالغ المدفوعة للخدمة الملغاة، باستثناء رسوم فعلية غير قابلة للاسترداد إذا كانت موجودة ومعلنة مسبقاً ويجوز الاحتفاظ بها نظاماً. لا تفترض Heavyar وجود هذه الرسوم.', 'If the provider cancels before service starts, the customer is eligible for return of amounts paid for the cancelled service, except actual non-refundable charges that exist, were disclosed in advance, and may lawfully be retained. Heavyar does not presume such charges exist.'],
+      ['بعد بدء الخدمة', 'After service has started', 'لا يُوعَد باسترجاع كامل تلقائي. تُراجع الحالة عبر الدعم أو النزاع بحسب الخدمة المقدمة والمدة أو الاستخدام والأضرار أو المشكلات وأدلة الطرفين وحالة المعاملة وشروط العقد المطبقة.', 'No automatic full refund is promised. Support or dispute review considers service delivered, duration or use, damage or issues, both parties’ evidence, transaction state, and applicable contract terms.'],
+      ['التغييرات المستقبلية', 'Future policy changes', 'قد تعتمد إصدارات مستقبلية مهلاً أو رسوماً أو استرجاعاً جزئياً أو جزاءات على مقدم الخدمة، لكنها لا تسري إلا بعد اعتمادها والإفصاح عنها بوضوح، ولا تطبق بأثر رجعي.', 'Future versions may introduce notice windows, fees, partial refunds, or provider penalties only after approval and clear disclosure, without retroactive application.'],
+      ['النزاع', 'Dispute', 'يمكن فتح طلب دعم مع الأدلة. لا يمنع مسار الدعم اللجوء لمزود الدفع أو شركة التأمين أو الجهة المختصة.', 'A support case may be opened with evidence. Support does not prevent recourse to the payment provider, insurer or competent authority.'],
+    ],
+  },
+  disputes: {
+    title: ['سياسة الشكاوى والنزاعات', 'Complaints and Disputes'],
+    intro: ['تقدم Heavyar مراجعة دعم تشغيلية ولا تعمل كمحكمة أو محكّم أو جهة ضبط.', 'Heavyar provides operational support review and is not a court, arbitrator or law-enforcement authority.'],
+    sections: [
+      ['تقديم الشكوى', 'Submitting a complaint', 'قدّم رقم الطلب ووصفاً موجزاً والأدلة المناسبة دون مشاركة أسرار دفع أو بيانات غير لازمة. تسجل المنصة الحالة وتتيح مراجعتها للمخولين.', 'Provide the request number, a concise description and relevant evidence without payment secrets or unnecessary personal data. The case is recorded for authorized review.'],
+      ['مسارات مستقلة', 'Separate channels', 'نزاع البطاقة يُرفع أيضاً لمصدر البطاقة أو مزود الدفع؛ والتأمين للمؤمّن؛ والحوادث والمرور للشرطة أو الجهة المختصة؛ والمطالبات النظامية للمحكمة أو الجهة السعودية المختصة.', 'Card disputes also go to the issuer/payment provider; insurance matters to the insurer; accidents and traffic matters to police/competent authority; legal claims to the competent Saudi authority or court.'],
+      ['نتيجة الدعم', 'Support outcome', 'قد تتضمن المراجعة طلب معلومات أو تقييد حساب أو إحالة، لكنها لا تصدر حكماً قضائياً ولا تضمن تعويضاً.', 'Review may request information, restrict an account or refer the matter, but does not issue a judgment or guarantee compensation.'],
+    ],
+  },
+  'provider-terms': {
+    title: ['شروط مقدمي الخدمة', 'Provider Terms'],
+    intro: ['هذه الشروط مكملة لشروط الاستخدام وتطبق على من يعرض معدات أو نشاطاً عبر Heavyar.', 'These terms supplement the Terms of Use for anyone listing equipment or services through Heavyar.'],
+    sections: [
+      ['الملكية والتفويض', 'Ownership and authority', 'يجب امتلاك المعدة أو وجود تفويض صالح، وتقديم معلومات وصور وأسعار دقيقة وعدم عرض أصل مسروق أو محظور.', 'Own the equipment or hold valid authority, provide accurate information, media and pricing, and never list stolen or prohibited assets.'],
+      ['التراخيص', 'Licensing', 'يتحمل مقدم الخدمة الحصول على السجلات والتراخيص والتصاريح وبطاقات التشغيل المطلوبة لنشاطه. قد تمنع Heavyar معاملة منظمة حتى اكتمال التحقق المحدد.', 'Providers must hold registrations, licences, permits and operating cards required for their activity. Heavyar may block a regulated transaction until scoped verification is complete.'],
+      ['السلامة والتأمين والتنفيذ', 'Safety, insurance and performance', 'يجب صيانة المعدات والإفصاح عن حالتها والاتفاق على التسليم والتشغيل والتأمين والأعطال والأضرار والمخالفات بما يوافق النظام.', 'Maintain equipment, disclose its condition, and agree delivery, operation, insurance, breakdown, damage and violation responsibilities in compliance with law.'],
+    ],
+  },
+  verification: {
+    title: ['سياسة التحقق والشارات', 'Verification and Badge Policy'],
+    intro: ['كل شارة محددة النطاق وتعني أن Heavyar تحققت من المعلومة أو المستند المحدد وفق عمليتها في وقت التحقق.', 'Each badge is scoped: Heavyar checked the named information or document under its process at the time of verification.'],
+    sections: [
+      ['نطاقات الشارات', 'Badge scopes', 'هوية موثقة، منشأة موثقة، ترخيص نشاط موثق، وبطاقة تشغيل موثقة حالات مستقلة ولا تحل إحداها محل الأخرى.', 'Identity Verified, Verified Business, Activity Licence Verified and Operating Card Verified are independent and do not substitute for one another.'],
+      ['ما لا تعنيه الشارة', 'What a badge does not mean', 'لا تعني الشارة اعتماداً حكومياً أو ضماناً ميكانيكياً أو مالياً أو صلاحية دائمة. قد تنتهي أو تُلغى ويُزال أثرها على المعاملات الجديدة.', 'A badge is not government endorsement, a mechanical or financial guarantee, or perpetual validity. It may expire or be revoked, affecting new transactions.'],
+    ],
+  },
+  'restricted-activities': {
+    title: ['الأنشطة المقيدة والمنظمة', 'Restricted and Regulated Activities'],
+    intro: ['تختلف المتطلبات بحسب النشاط والمعدة والدور والموقع، ولا تخضع كل المعدات لقاعدة واحدة.', 'Requirements vary by activity, asset, role and jurisdiction; not every equipment category follows the same rule.'],
+    sections: [
+      ['المتطلبات', 'Requirements', 'قد يلزم سجل أو ترخيص نشاط أو تصريح أو بطاقة تشغيل أو إثبات ملكية أو تفويض. لا تتجاوز إخلاءات المسؤولية هذه المتطلبات.', 'A registration, activity licence, permit, operating card, ownership proof or authorization may be required. Disclaimers cannot override these requirements.'],
+      ['تأجير الشاحنات دون سائق', 'Truck rental without a driver', 'في الفرع السعودي المنظم، لا تُقبل معاملة تأجير شاحنة دون سائق حتى تتوفر قدرة تنظيمية صالحة مبنية على منشأة ووثائق النشاط وبطاقة التشغيل والملكية أو التفويض. تصريح نقل فردي ليس بديلاً تلقائياً عن ترخيص تأجير الشاحنات.', 'For the regulated Saudi branch, a truck-rental-without-driver transaction is not accepted until a valid capability is established from business status, activity documents, operating card and ownership/authority. An individual freight authorization is not automatically a truck-rental licence.'],
+      ['صلاحية Heavyar', 'Heavyar scope', 'تتحقق Heavyar من الوثيقة المقدمة وحالتها المتاحة لها، ولا تصدر الترخيص ولا تمثل جهة النقل المختصة.', 'Heavyar checks the submitted document and status available to it; it does not issue licences or represent the transport authority.'],
+    ],
+  },
+};
+
+const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+
+export function hasLegalPage(key) { return Object.hasOwn(pages, key); }
+export function renderLegalPage(key, locale) {
+  const page = pages[key];
+  if (!page) throw new Error('Unknown legal page');
+  const en = locale === 'en', pick = pair => pair[en ? 1 : 0];
+  return `<nav class="navbar"><div class="container"><a href="${en ? '/en/' : '/'}" class="navbar-brand"><img src="/assets/images/logo.png" alt="Heavyar" class="navbar-logo"><span class="navbar-title">Heavyar</span></a><a class="nav-lang" href="${en ? `/${key}` : `/en/${key}`}">${en ? 'العربية' : 'English'}</a></div></nav><main class="legal-page"><article class="legal-content"><div class="page"><h1>${escape(pick(page.title))}</h1><div class="note"><p>${escape(pick(page.intro))}</p></div>${page.sections.map(section => `<h2>${escape(pick([section[0], section[1]]))}</h2><p>${escape(pick([section[2], section[3]]))}</p>`).join('')}<div class="footer"><p>${en ? 'Contact: ' : 'للتواصل: '}<a href="mailto:heavyar.official@gmail.com">heavyar.official@gmail.com</a></p></div></div></article></main>`;
+}

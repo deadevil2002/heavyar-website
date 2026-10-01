@@ -13,7 +13,7 @@ for (const file of ['delete-account.js', 'styles.css', 'script.js', 'site.webman
 for (const file of ['index.html', 'privacy.html', 'terms.html', 'delete-account.html', 'refund.html', 'safety.html', 'providers-terms.html', 'faq.html', 'contact.html']) {
   await cp(new URL(file, root), new URL(file, dist));
 }
-for (const file of ['seo.mjs', 'fallback.mjs', 'legacy-source.mjs', 'legacy.mjs', 'handler.mjs', 'site.mjs']) await cp(new URL(`src/${file}`, root), new URL(`src/${file}`, dist));
+for (const file of ['seo.mjs', 'fallback.mjs', 'legacy-source.mjs', 'legacy.mjs', 'legal-pages.mjs', 'handler.mjs', 'site.mjs']) await cp(new URL(`src/${file}`, root), new URL(`src/${file}`, dist));
 for (const file of ['_worker.js', '_routes.json']) await cp(new URL(file, root), new URL(file, dist));
 
 // Static fallback files are useful when Pages assets are inspected directly;
