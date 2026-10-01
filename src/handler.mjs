@@ -9,6 +9,7 @@ const API_RULES = {
   '/api/early-access/config': ['GET', 'HEAD'],
   '/api/early-access/register': ['POST'],
 };
+const EARLY_ACCESS_CONFIG_URL = `${API_ORIGIN}/api/early-access/config`;
 const STATIC_FILES = new Set([
   '/delete-account.js', '/styles.css', '/script.js', '/site.webmanifest',
   '/favicon.ico',
@@ -105,6 +106,24 @@ async function proxyApi(request, pathname, fetcher) {
   return new Response(null, { status: response.status, headers: response.headers });
 }
 
+async function getEarlyAccessEnabled(fetcher, timeoutMs = 1500) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetcher(EARLY_ACCESS_CONFIG_URL, {
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    });
+    if (!response.ok) return false;
+    const payload = await response.json();
+    return payload?.enabled === true;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function handleRequest(request, env = {}, options = {}) {
   const url = new URL(request.url);
   const basePath = options.basePath || '';
@@ -153,12 +172,17 @@ export async function handleRequest(request, env = {}, options = {}) {
   const route = ROUTES[cleanPath] || (cleanPath.endsWith('/') ? ROUTES[cleanPath.slice(0, -1)] : ROUTES[`${cleanPath}/`]);
   if (route) {
     const [key, locale] = route;
-    const { payload, source } = await getSeo(options.fetcher || fetch);
+    const fetcher = options.fetcher || fetch;
+    const isEarlyAccessSurface = key === 'home' || key === 'early-access';
+    const [{ payload, source }, earlyAccessEnabled] = await Promise.all([
+      getSeo(fetcher),
+      isEarlyAccessSurface ? getEarlyAccessEnabled(fetcher, options.earlyAccessTimeoutMs) : false,
+    ]);
     const page = pageFor(payload, key, locale);
     const hasPublishedLocale = payload.pages.some(candidate => candidate.key === key && candidate.locale === locale);
     let body;
-    if (key === 'home' || key === 'early-access') {
-      body = renderHome({ locale, faqs: page.faqs, earlyAccessEnabled: false });
+    if (isEarlyAccessSurface) {
+      body = renderHome({ locale, faqs: page.faqs, earlyAccessEnabled });
       if (hasPublishedLocale && ['published', 'stale-published'].includes(source)) {
         body = body.replace(/(<h1 class="hero-title">)[\s\S]*?(<\/h1>)/, `$1${escapeHtml(page.heading)}$2`);
       }
@@ -168,14 +192,15 @@ export async function handleRequest(request, env = {}, options = {}) {
       body = brandedPage(locale, key, accountContent);
     }
     else body = brandedPage(locale, key, routeBody(key, locale, page));
-    const extraHead = key === 'home' || key === 'early-access' ? '' : '<link rel="stylesheet" href="/assets/site.css">';
+    const extraHead = isEarlyAccessSurface ? '' : '<link rel="stylesheet" href="/assets/site.css">';
     const apiBase = basePath || API_ORIGIN;
     const integrationHead = `<meta name="heavyar-api-base" content="${escapeHtml(apiBase)}">`;
     const html = devRewrite(shell(locale, `${renderHead(page, payload.global)}${extraHead}${integrationHead}`, body, key), basePath);
     const seoSource = ['published', 'stale-published'].includes(source)
       ? (hasPublishedLocale ? source : 'published-missing-locale-noindex-fallback')
       : source === FALLBACK_REASON ? 'audited-fallback' : 'unavailable-fallback';
-    return text(request.method === 'HEAD' ? null : html, 200, 'text/html; charset=utf-8', { ...pageSecurityHeaders(Boolean(basePath)), 'Cache-Control': 'public, max-age=60', 'X-Robots-Tag': page.robots, 'X-SEO-Source': seoSource });
+    const cacheControl = isEarlyAccessSurface ? 'no-store' : 'public, max-age=60';
+    return text(request.method === 'HEAD' ? null : html, 200, 'text/html; charset=utf-8', { ...pageSecurityHeaders(Boolean(basePath)), 'Cache-Control': cacheControl, 'X-Robots-Tag': page.robots, 'X-SEO-Source': seoSource });
   }
   // Repository-root Pages deployments must never expose implementation, Git,
   // tests, or baseline source files through the static asset binding.

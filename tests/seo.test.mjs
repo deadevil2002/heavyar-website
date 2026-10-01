@@ -138,6 +138,42 @@ test('dedicated Early Access route keeps conversion visible while submission fai
   assert.match(html, />Get Early Access</);
 });
 
+test('initial Early Access render follows authoritative config without a closed-state flash', async () => {
+  for (const [enabled, initial, formHidden, closedHidden] of [
+    [true, 'true', false, true],
+    [false, 'false', true, false],
+  ]) {
+    resetSeoCache();
+    const fetcher = async url => {
+      if (String(url).endsWith('/api/early-access/config')) return Response.json({ enabled });
+      return Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
+    };
+    const response = await handleRequest(new Request(`https://heavyar.com/?enabled=${enabled}`), {}, { fetcher });
+    const html = await response.text();
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.match(html, new RegExp(`data-ea-initial-enabled="${initial}"`));
+    assert.equal(/data-ea-form style="display:none;"/.test(html), formHidden);
+    assert.equal(/data-ea-closed-message style="display:none;"/.test(html), closedHidden);
+  }
+});
+
+test('initial Early Access render fails closed when config retrieval fails or is malformed', async () => {
+  for (const configResponse of [
+    new Response('unavailable', { status: 503 }),
+    Response.json({ enabled: 'true' }),
+  ]) {
+    resetSeoCache();
+    const fetcher = async url => {
+      if (String(url).endsWith('/api/early-access/config')) return configResponse.clone();
+      return Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
+    };
+    const html = await (await handleRequest(new Request('https://heavyar.com/'), {}, { fetcher })).text();
+    assert.match(html, /data-ea-initial-enabled="false"/);
+    assert.match(html, /data-ea-form style="display:none;"/);
+    assert.doesNotMatch(html, /data-ea-closed-message style="display:none;"/);
+  }
+});
+
 test('landing keeps Early Access as a primary conversion without bypassing config', async () => {
   const unpublished = async () => Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
   for (const [path, label] of [['/', 'سجل للوصول المبكر'], ['/en/', 'Get Early Access']]) {
