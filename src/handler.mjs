@@ -168,7 +168,11 @@ export async function handleRequest(request, env = {}, options = {}) {
     '/terms-of-service': '/terms',
     '/en/terms-of-service': '/en/terms',
   }[pathname];
-  const cleanPath = legalAlias || legacy || pathname;
+  const publicAlias = {
+    '/support': '/help',
+    '/en/support': '/en/help',
+  }[pathname];
+  const cleanPath = legalAlias || publicAlias || legacy || pathname;
   const route = ROUTES[cleanPath] || (cleanPath.endsWith('/') ? ROUTES[cleanPath.slice(0, -1)] : ROUTES[`${cleanPath}/`]);
   if (route) {
     const [key, locale] = route;
