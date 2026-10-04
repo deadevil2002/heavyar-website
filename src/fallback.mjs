@@ -30,7 +30,7 @@ const copy = {
   help: { ar: ['المساعدة | Heavyar', 'إجابات ومعلومات تساعدك على فهم منصة Heavyar والتواصل مع الدعم.'], en: ['Help | Heavyar', 'Answers and support information to help you understand Heavyar.'] },
   privacy: { ar: ['سياسة الخصوصية – Heavyar', 'اقرأ سياسة خصوصية Heavyar وكيفية جمع البيانات واستخدامها وحمايتها.'], en: ['Privacy Policy – Heavyar', 'Read the Heavyar Privacy Policy covering collection, use, protection, and retention of data.'] },
   terms: { ar: ['شروط وأحكام استخدام المنصة – Heavyar', 'اقرأ شروط وأحكام استخدام منصة Heavyar.'], en: ['Terms of Service – Heavyar', 'Read the terms and conditions governing use of the Heavyar platform.'] },
-  'account-deletion': { ar: ['حذف حساب Heavyar', 'اطلب حذف حساب Heavyar بأمان بعد تسجيل الدخول.'], en: ['Delete your Heavyar account', 'Request deletion of your Heavyar account securely after signing in.'] },
+  'account-deletion': { ar: ['حذف حساب Heavyar', 'تعرّف على خطوات طلب حذف حسابك مباشرة من تطبيق Heavyar.'], en: ['Delete your Heavyar account', 'Learn how to request account deletion directly in the Heavyar app.'] },
   'early-access': { ar: ['الوصول المبكر | Heavyar', 'معلومات الوصول المبكر إلى Heavyar عند إتاحة التسجيل.'], en: ['Early access | Heavyar', 'Heavyar early-access information when registration becomes available.'] },
 };
 

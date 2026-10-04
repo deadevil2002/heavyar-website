@@ -18,8 +18,10 @@ historical; do not create or deploy another project using that name.
   not edit or publish SEO configuration.
 - Registration requests call the authoritative Worker directly. The exact
   `https://heavyar.com` CORS change must be released before activation.
-- Original legal pages and `delete-account.js` remain unchanged. Immutable copies
-  of legal HTML avoid asset redirect loops; source hashes guard preservation.
+- Original legal source snapshots remain unchanged for integrity/history. The active
+  account-deletion route is now public in-app guidance; its former Firebase Auth
+  script and credential form are excluded from the production build and routing.
+  Immutable copies of legal HTML avoid asset redirect loops; source hashes guard preservation.
   English legal routes explain that the controlling preserved text is Arabic.
 - The new hero is generated illustrative artwork, not a real equipment listing.
   Site icons and the social image reuse the existing approved brand artwork.
@@ -54,8 +56,8 @@ heavyar-complete/
 ├── script.js                  # Language switching
 ├── terms.html                 # Terms of service
 ├── privacy.html               # Privacy policy
-├── delete-account.html        # Authenticated account deletion
-├── delete-account.js          # Firebase Web Auth deletion flow
+├── delete-account.html        # Preserved historical source; not shipped as a static page
+├── delete-account.js          # Preserved historical source; not shipped or routed
 ├── refund.html                # Refund policy
 ├── safety.html                # Safety guidelines
 ├── providers-terms.html       # Provider terms
@@ -93,13 +95,12 @@ heavyar-complete/
 - ✅ Links to all other pages
 - ✅ Responsive layout
 
-### Account deletion (delete-account.html):
+### Account deletion (`/account-deletion` and `/en/account-deletion`):
 - ✅ Arabic/English language toggle with RTL/LTR support
-- ✅ Firebase Web Auth email/password sign-in
-- ✅ Firebase password-reset email with generic account-safe messaging
-- ✅ Authenticated Worker deletion request using `DELETE_MY_ACCOUNT`
-- ✅ Explicit confirmation, safe errors, and session cleanup
-- ✅ No UID/email accepted as proof and no server secrets in the site
+- ✅ Public instructions for deleting an account from Profile or Settings in the mobile app
+- ✅ Privacy and Support links plus a monitored support address
+- ✅ No web login, password field, Firebase Auth, or direct deletion API request
+- ✅ Legacy delete-account aliases resolve to the same safe informational experience
 
 ### Footer (all 9 pages):
 - ✅ Certificate badge (clickable)
@@ -125,8 +126,8 @@ heavyar-complete/
    - Click "Upload assets"
 
 3. **Upload Files**
-    - Upload ALL files and folders from this package, including `delete-account.html` and `delete-account.js`
-   - Maintain the folder structure (especially assets/)
+   - Run `npm run build` and upload the generated `dist/` output only.
+   - Do not separately add the historical `delete-account.html` or `delete-account.js` sources.
 
 4. **Build Settings**
    - Build command: (leave empty)

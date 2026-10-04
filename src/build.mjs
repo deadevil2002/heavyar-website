@@ -5,12 +5,12 @@ const dist = new URL('../dist/', import.meta.url);
 await rm(dist, { recursive: true, force: true });
 await mkdir(new URL('src/', dist), { recursive: true });
 await cp(new URL('assets/', root), new URL('assets/', dist), { recursive: true });
-for (const file of ['delete-account.js', 'styles.css', 'script.js', 'site.webmanifest', 'favicon.ico', 'favicon-32.png', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png']) {
+for (const file of ['styles.css', 'script.js', 'site.webmanifest', 'favicon.ico', 'favicon-32.png', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png']) {
   try { await cp(new URL(file, root), new URL(file, dist)); } catch (error) {
     if (error?.code !== 'ENOENT') throw error;
   }
 }
-for (const file of ['index.html', 'privacy.html', 'terms.html', 'delete-account.html', 'refund.html', 'safety.html', 'providers-terms.html', 'faq.html', 'contact.html']) {
+for (const file of ['index.html', 'privacy.html', 'terms.html', 'refund.html', 'safety.html', 'providers-terms.html', 'faq.html', 'contact.html']) {
   await cp(new URL(file, root), new URL(file, dist));
 }
 for (const file of ['seo.mjs', 'deadline.mjs', 'fallback.mjs', 'legacy-source.mjs', 'legacy.mjs', 'legal-pages.mjs', 'handler.mjs', 'site.mjs']) await cp(new URL(`src/${file}`, root), new URL(`src/${file}`, dist));

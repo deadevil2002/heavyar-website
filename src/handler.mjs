@@ -1,7 +1,7 @@
 import { renderHome, renderSiteFooter, renderSiteHeader, renderSiteScripts } from './site.mjs';
 import { getSeo, LEGACY_ROUTES, pageFor, renderHead, robotsTxt, ROUTES, sitemapXml, escapeHtml } from './seo.mjs';
 import { FALLBACK_REASON } from './fallback.mjs';
-import { legacySource, renderLegacy, renderPreservedBody } from './legacy.mjs';
+import { renderPreservedBody } from './legacy.mjs';
 import { hasLegalPage, renderLegalPage } from './legal-pages.mjs';
 import { fetchWithDeadline } from './deadline.mjs';
 
@@ -12,7 +12,7 @@ const API_RULES = {
 };
 const EARLY_ACCESS_CONFIG_URL = `${API_ORIGIN}/api/early-access/config`;
 const STATIC_FILES = new Set([
-  '/delete-account.js', '/styles.css', '/script.js', '/site.webmanifest',
+  '/styles.css', '/script.js', '/site.webmanifest',
   '/favicon.ico',
   '/refund.html', '/safety.html', '/providers-terms.html', '/contact.html',
 ]);
@@ -48,7 +48,7 @@ function typographyHead(locale) {
 
 function shell(locale, head, body, key) {
   const dir = locale === 'ar-SA' ? 'rtl' : 'ltr';
-  return `<!doctype html><html lang="${locale}" dir="${dir}"><head>${typographyHead(locale)}${head}</head><body>${body}${key === 'account-deletion' ? '<script type="module" src="/delete-account.js"></script>' : ''}</body></html>`;
+  return `<!doctype html><html lang="${locale}" dir="${dir}"><head>${typographyHead(locale)}${head}</head><body>${body}</body></html>`;
 }
 
 function brandedPage(locale, key, content) {
@@ -69,6 +69,49 @@ function routeBody(key, locale, page) {
   const heading = page.heading;
   const faqs = page.faqs.length ? `<section class="route-faq"><h2>${ar ? 'الأسئلة الشائعة' : 'Frequently asked questions'}</h2>${page.faqs.map(f => `<details><summary>${escapeHtml(f.question)}</summary><p>${escapeHtml(f.answer)}</p></details>`).join('')}</section>` : '';
   return `<main class="content-page" id="main-content"><header class="inner-hero"><div class="site-container inner-hero-copy"><p class="eyebrow eyebrow-light">Heavyar</p><h1>${escapeHtml(heading)}</h1><p>${escapeHtml(description)}</p></div></header><div class="site-container route-content">${key === 'early-access' ? '<section id="early-access-root" data-early-access="false" hidden></section>' : ''}${faqs}</div></main>`;
+}
+
+function accountDeletionInformation(locale) {
+  const ar = locale === 'ar-SA';
+  const copy = ar ? {
+    eyebrow: 'إدارة الحساب',
+    title: 'حذف حساب Heavyar',
+    intro: 'يمكنك طلب حذف حسابك مباشرة من تطبيق Heavyar. لا ترسل كلمة المرور أو بيانات الدخول عبر البريد الإلكتروني أو الدعم.',
+    stepsTitle: 'طريقة طلب حذف الحساب',
+    steps: [
+      'افتح تطبيق Heavyar.',
+      'سجّل الدخول إلى حسابك.',
+      'افتح «الملف الشخصي» أو «الإعدادات».',
+      'اختر «حذف الحساب».',
+      'راجع التنبيه وأكد طلب الحذف.',
+    ],
+    processTitle: 'ماذا يحدث بعد الطلب؟',
+    process: 'يبدأ الطلب من داخل التطبيق. يتم قفل الحساب وبدء معالجة طلب الحذف وفق سياسة الخصوصية. قد يتم الاحتفاظ بسجلات محدودة عندما يكون الاحتفاظ مطلوباً لأغراض نظامية أو محاسبية أو نزاعات.',
+    accessTitle: 'لا تستطيع الوصول إلى حسابك؟',
+    access: 'تواصل مع دعم Heavyar للمساعدة. لا ترسل كلمة المرور أو أي بيانات دخول.',
+    privacy: 'سياسة الخصوصية',
+    support: 'الدعم',
+  } : {
+    eyebrow: 'Account management',
+    title: 'Delete your Heavyar account',
+    intro: 'You can request deletion of your account directly in the Heavyar app. Never send your password or sign-in credentials by email or to support.',
+    stepsTitle: 'How to request account deletion',
+    steps: [
+      'Open the Heavyar app.',
+      'Sign in to your account.',
+      'Open “Profile” or “Settings”.',
+      'Select “Delete account”.',
+      'Review the notice and confirm the deletion request.',
+    ],
+    processTitle: 'What happens after the request?',
+    process: 'The request starts inside the app. Your account is locked and the deletion process begins under the Privacy Policy. Limited records may be retained when required for legal, accounting, or dispute purposes.',
+    accessTitle: 'Cannot access your account?',
+    access: 'Contact Heavyar Support for assistance. Never send your password or other sign-in credentials.',
+    privacy: 'Privacy Policy',
+    support: 'Support',
+  };
+  const steps = copy.steps.map((step, index) => `<li><span aria-hidden="true">${index + 1}</span><p>${escapeHtml(step)}</p></li>`).join('');
+  return `<main class="content-page account-information" id="main-content"><header class="inner-hero"><div class="site-container inner-hero-copy"><p class="eyebrow eyebrow-light">${escapeHtml(copy.eyebrow)}</p><h1>${escapeHtml(copy.title)}</h1><p>${escapeHtml(copy.intro)}</p></div></header><div class="site-container account-information-layout"><section class="account-information-card" aria-labelledby="deletion-steps"><h2 id="deletion-steps">${escapeHtml(copy.stepsTitle)}</h2><ol class="account-deletion-steps">${steps}</ol></section><aside class="account-information-aside"><section><h2>${escapeHtml(copy.processTitle)}</h2><p>${escapeHtml(copy.process)}</p><a href="/privacy">${escapeHtml(copy.privacy)}</a></section><section><h2>${escapeHtml(copy.accessTitle)}</h2><p>${escapeHtml(copy.access)}</p><a href="mailto:heavyar.official@gmail.com">heavyar.official@gmail.com</a><a href="/support">${escapeHtml(copy.support)}</a></section></aside></div></main>`;
 }
 
 function notFound(locale) {
@@ -187,10 +230,7 @@ export async function handleRequest(request, env = {}, options = {}) {
         body = body.replace(/(<h1 class="hero-title">)[\s\S]*?(<\/h1>)/, `$1${escapeHtml(page.heading)}$2`);
       }
     }
-    else if (key === 'account-deletion') {
-      const accountContent = (await renderLegacy(key, locale, legacySource(key))).replace('<main ', '<main id="main-content" ');
-      body = brandedPage(locale, key, accountContent);
-    }
+    else if (key === 'account-deletion') body = brandedPage(locale, key, accountDeletionInformation(locale));
     else body = brandedPage(locale, key, routeBody(key, locale, page));
     const extraHead = isEarlyAccessSurface ? '' : '<link rel="stylesheet" href="/assets/site.css">';
     const apiBase = basePath || API_ORIGIN;

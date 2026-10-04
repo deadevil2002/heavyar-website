@@ -1,5 +1,5 @@
 {
   "version": 1,
   "include": ["/*"],
-  "exclude": ["/assets/*", "/delete-account.js", "/site.webmanifest"]
+  "exclude": ["/assets/*", "/site.webmanifest"]
 }

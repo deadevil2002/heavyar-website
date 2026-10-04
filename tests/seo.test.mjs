@@ -53,22 +53,31 @@ test('account deletion always remains private', () => {
   assert.equal(page.sitemap.include, false);
 });
 
-test('clean and legacy account-deletion routes preserve authenticated flow', async () => {
+test('clean and legacy account-deletion routes serve public in-app instructions only', async () => {
   resetSeoCache();
   const unavailable = async () => Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
-  const options = {
-    fetcher: unavailable,
-    legacyLoader: file => readFile(new URL(`../${file}`, import.meta.url), 'utf8'),
-  };
-  for (const path of ['/account-deletion', '/en/account-deletion', '/delete-account.html']) {
-    const response = await handleRequest(new Request(`https://heavyar.com${path}`), {}, options);
+  const cases = [
+    ['/account-deletion', /حذف حساب Heavyar/, /الملف الشخصي/, /الإعدادات/],
+    ['/en/account-deletion', /Delete your Heavyar account/, /Profile/, /Settings/],
+    ['/delete-account.html', /حذف حساب Heavyar/, /الملف الشخصي/, /الإعدادات/],
+    ['/delete-account', /حذف حساب Heavyar/, /الملف الشخصي/, /الإعدادات/],
+    ['/en/delete-account', /Delete your Heavyar account/, /Profile/, /Settings/],
+  ];
+  for (const [path, title, profile, settings] of cases) {
+    resetSeoCache();
+    const response = await handleRequest(new Request(`https://heavyar.com${path}`), {}, { fetcher: unavailable });
     const html = await response.text();
     assert.equal(response.status, 200);
     assert.equal(response.headers.get('x-robots-tag'), 'noindex,nofollow');
-    assert.match(html, /id="sign-in-form"/);
-    assert.match(html, /id="delete-form"/);
-    assert.match(html, /type="module" src="\/delete-account\.js"/);
-    assert.doesNotMatch(html, /name="uid"/);
+    assert.match(html, title);
+    assert.match(html, profile);
+    assert.match(html, settings);
+    assert.match(html, /heavyar\.official@gmail\.com/);
+    assert.match(html, /href="\/privacy"/);
+    assert.match(html, /href="\/support"/);
+    assert.doesNotMatch(html, /type=["']password["']|id=["']sign-in-form["']|id=["']delete-form["']/i);
+    assert.doesNotMatch(html, /firebase-auth|signInWithEmailAndPassword|sendPasswordResetEmail|DELETE_MY_ACCOUNT|\/api\/account\/deletion-request/i);
+    assert.doesNotMatch(html, /delete-account\.js/);
   }
 });
 
@@ -346,7 +355,7 @@ test('development CSP permits the Replit preview frame without weakening product
   assert.equal(production.headers.get('x-frame-options'), 'DENY');
 });
 
-test('production blocker aliases and English deletion fields are corrected', async () => {
+test('production blocker aliases and English deletion information are correct', async () => {
   const unpublished = async () => Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
   for (const [alias, canonical] of [
     ['/privacy-policy', 'https://heavyar.com/privacy'],
@@ -363,8 +372,10 @@ test('production blocker aliases and English deletion fields are corrected', asy
   resetSeoCache();
   const deletion = await handleRequest(new Request('https://heavyar.com/en/account-deletion'), {}, { fetcher: unpublished });
   const deletionHtml = await deletion.text();
-  assert.match(deletionHtml, /placeholder="Enter your password"/);
-  assert.match(deletionHtml, /<div lang="en" dir="ltr"><main/);
+  assert.match(deletionHtml, /<html lang="en" dir="ltr">/);
+  assert.match(deletionHtml, /Delete your Heavyar account/);
+  assert.match(deletionHtml, /Open “Profile” or “Settings”/);
+  assert.doesNotMatch(deletionHtml, /type=["']password["']|sign-in-form|delete-form|DELETE_MY_ACCOUNT/i);
   assert.match(deletion.headers.get('content-security-policy'), /static\.cloudflareinsights\.com/);
 
 });

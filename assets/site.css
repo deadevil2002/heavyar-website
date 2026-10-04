@@ -317,32 +317,20 @@ html[dir="rtl"] .legal-content p, html[dir="rtl"] .legal-content li { line-heigh
 .route-faq summary { color: var(--ink); font-weight: 600; cursor: pointer; }
 .route-faq p { margin: 14px 0 0; color: var(--muted); }
 
-/* Account deletion keeps its authenticated behavior inside the shared shell. */
-.account-main { min-height: 70vh; display: grid; place-items: center; padding: clamp(56px, 8vw, 96px) 20px; background: radial-gradient(circle at 78% 18%, rgba(67,137,204,.24), transparent 34%), linear-gradient(145deg, var(--ink), #0a3c83); }
-.account-card { width: min(100%, 680px); padding: clamp(26px, 5vw, 52px); color: var(--text); border: 1px solid rgba(67,137,204,.25); border-radius: 38px 14px 38px 14px; background: #fff; box-shadow: var(--shadow-lg); }
-.account-eyebrow { margin: 0 0 9px; color: var(--gold-dark); font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-.account-card h1 { margin: 0 0 14px; color: var(--ink); font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.25; }
-.account-card h2 { margin: 0 0 18px; color: var(--ink-soft); font-size: 1.45rem; }
-.account-intro { margin: 0 0 26px; color: var(--muted); line-height: 1.9; }
-.account-form { display: grid; gap: 10px; margin-top: 24px; }
-.account-form label { margin-top: 6px; color: var(--ink); font-weight: 600; }
-.account-form input[type="email"], .account-form input[type="password"], .account-form input[type="text"] { width: 100%; min-height: 50px; padding: 12px 15px; color: var(--ink); border: 1px solid var(--line); border-radius: 11px; background: #f8fbff; }
-.account-form input:focus { outline: 3px solid rgba(67,137,204,.24); border-color: var(--blue); }
-.account-submit { margin-top: 8px; border: 0; }
-.account-submit:disabled, .account-link-button:disabled { opacity: .6; cursor: wait; }
-.btn-danger { min-height: 50px; padding: 12px 20px; color: #fff; border: 0; border-radius: 999px; background: #991b1b; font-weight: 600; cursor: pointer; }
-.account-link-button { padding: 7px; color: var(--blue); border: 0; background: none; font: inherit; text-decoration: underline; cursor: pointer; }
-.account-status { margin: 16px 0; padding: 13px 15px; border-radius: 10px; line-height: 1.65; }
-.account-status.info { color: #174f85; background: #e9f3ff; }
-.account-status.success { color: #125a3b; background: #e6f7ee; }
-.account-status.error { color: #7a1f1f; background: #ffeded; }
-.signed-in-panel { margin-top: 26px; padding-top: 24px; border-top: 1px solid var(--line); }
-.signed-in-label { margin: 0 0 4px; }
-.warning-copy { padding: 14px; color: #6f3905; border-radius: 11px; background: #fff7dd; line-height: 1.75; }
-.confirmation-row { display: flex; align-items: flex-start; gap: 9px; }
-.confirmation-row input { width: 19px; height: 19px; margin-top: 5px; accent-color: var(--blue); }
-.account-back { margin: 28px 0 0; text-align: center; }
-.account-back a { color: var(--blue); font-weight: 600; }
+/* Public account-deletion information. The authenticated action stays in the app. */
+.account-information-layout { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr); gap: 24px; margin-top: -52px; padding-bottom: clamp(72px, 9vw, 120px); }
+.account-information-card, .account-information-aside section { border: 1px solid rgba(67,137,204,.2); background: rgba(255,255,255,.99); box-shadow: 0 28px 70px rgba(1,32,84,.11); }
+.account-information-card { padding: clamp(28px, 5vw, 56px); border-radius: 40px 16px 40px 16px; }
+.account-information-card h2, .account-information-aside h2 { margin: 0; color: var(--ink); font-size: clamp(1.35rem, 2.3vw, 1.8rem); line-height: 1.45; }
+.account-deletion-steps { display: grid; gap: 14px; margin: 28px 0 0; padding: 0; list-style: none; }
+.account-deletion-steps li { display: flex; align-items: center; gap: 15px; min-width: 0; padding: 17px 18px; border: 1px solid var(--line); border-radius: 16px 7px 16px 7px; background: #f8fbff; }
+.account-deletion-steps span { display: grid; flex: 0 0 36px; width: 36px; height: 36px; place-items: center; color: var(--ink); border-radius: 11px 5px 11px 5px; background: var(--gold); font-weight: 700; }
+.account-deletion-steps p { min-width: 0; margin: 0; color: #293b53; line-height: 1.75; }
+.account-information-aside { display: grid; align-content: start; gap: 18px; }
+.account-information-aside section { padding: 26px; border-radius: 24px 10px 24px 10px; }
+.account-information-aside section:first-child { border-block-start: 4px solid var(--gold); }
+.account-information-aside p { margin: 12px 0 18px; color: #42546b; line-height: 1.85; }
+.account-information-aside a { display: block; width: fit-content; max-width: 100%; margin-top: 9px; color: var(--blue); font-weight: 700; overflow-wrap: anywhere; }
 
 /* Branded error state */
 .not-found-page { min-height: 70vh; display: grid; place-items: center; padding: clamp(60px, 9vw, 120px) 0; background: radial-gradient(circle at 75% 20%, rgba(67,137,204,.3), transparent 34%), linear-gradient(145deg, var(--cream), #fff); }
@@ -418,6 +406,7 @@ iframe.sbc-seal-frame:not([data-seal-ready="true"]) { visibility: hidden !import
   .final-cta-inner { align-items: flex-start; flex-direction: column; }
   .footer-top { align-items: flex-start; flex-direction: column; }
   .footer-top p { text-align: start; }
+  .account-information-layout { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 560px) {
@@ -462,8 +451,9 @@ iframe.sbc-seal-frame:not([data-seal-ready="true"]) { visibility: hidden !import
   .legal-content { padding: 25px 18px; border-radius: 26px 10px 26px 10px; }
   .legal-content .note, .legal-contact, .legal-content .footer { padding: 17px; }
   .preserved-page > .legal-content { width: min(100% - 20px, 920px); }
-  .account-main { padding-inline: 10px; }
-  .account-card { padding: 26px 18px; border-radius: 26px 10px 26px 10px; }
+  .account-information-layout { width: min(100% - 20px, var(--container)); margin-top: -42px; }
+  .account-information-card { padding: 25px 18px; border-radius: 26px 10px 26px 10px; }
+  .account-deletion-steps li { align-items: flex-start; padding: 15px; }
   .not-found-card { width: min(100% - 24px, var(--container)); }
 }
 
