@@ -92,6 +92,12 @@ test('HSTS covers production errors and assets but is omitted from local develop
   assert.equal(development.headers.get('x-frame-options'), null);
 });
 
+test('Pages static asset policy carries production transport headers', async () => {
+  const headers = await readFile(new URL('../_headers', import.meta.url), 'utf8');
+  assert.match(headers, /\/\*[\s\S]*Strict-Transport-Security:\s*max-age=31536000/);
+  assert.match(headers, /\/\*[\s\S]*X-Content-Type-Options:\s*nosniff/);
+});
+
 test('landing keeps responsive AVIF/WebP hero delivery and deferred official seal loading', async () => {
   resetSeoCache();
   const html = await (await handleRequest(new Request('https://heavyar.com/'), {}, { fetcher: unpublished })).text();

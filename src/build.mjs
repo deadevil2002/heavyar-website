@@ -14,7 +14,7 @@ for (const file of ['index.html', 'privacy.html', 'terms.html', 'refund.html', '
   await cp(new URL(file, root), new URL(file, dist));
 }
 for (const file of ['seo.mjs', 'deadline.mjs', 'fallback.mjs', 'legacy-source.mjs', 'legacy.mjs', 'legal-pages.mjs', 'handler.mjs', 'site.mjs']) await cp(new URL(`src/${file}`, root), new URL(`src/${file}`, dist));
-for (const file of ['_worker.js', '_routes.json']) await cp(new URL(file, root), new URL(file, dist));
+for (const file of ['_worker.js', '_routes.json', '_headers']) await cp(new URL(file, root), new URL(file, dist));
 
 // Static fallback files are useful when Pages assets are inspected directly;
 // runtime requests are rendered by the advanced-mode Worker.
