@@ -6,6 +6,7 @@ import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
 import { handleRequest } from '../src/handler.mjs';
 import { LEGACY_SOURCE_SHA256, legacySource, renderLegacy } from '../src/legacy.mjs';
+import { renderSiteFooter } from '../src/site.mjs';
 
 test('metadata is escaped and JSON-LD cannot close its script', () => {
   const payload = fallbackPayload();
@@ -492,6 +493,27 @@ test('static landing surface keeps the CR and official seal while removing the i
   assert.equal((html.match(/class="language-toggle language-route"/g) || []).length, 1);
   assert.match(html, /src="\/assets\/seal-lifecycle\.js"/);
   assert.doesNotMatch(html, /sbc-certificate\.png/);
+});
+
+test('footer presents National Personal Data Register evidence without certification overclaims', () => {
+  const verificationUrl = 'https://dgp.sdaia.gov.sa/wps/portal/pdp/services/certificate/75001f5a-d0bf-f111-b136-005056ab7918/!ut/p/z1/jY_RCoIwFIafpQcY52xjUy9XCGktCtFsNzGJmVAqIl309I0uk6xz98P3_5wPDJRgWvtoajs2XWtvPp-MPCcqlmuaIaPFUqDkeifEhjOMORw_gLyIPHBgOlUJxz0H808fv5zCX_30F-AN2KBXugbT2_FKmtZ1UAYCkTphyQUrRxyllFSUS4IoUEhbBREN_W9mdj1kE2Cq_wZm_DI7QH_Py-fWZQlRixcdwYwR/';
+  const arabic = renderSiteFooter('ar');
+  const english = renderSiteFooter('en');
+
+  assert.match(arabic, /مسجل في السجل الوطني لحماية البيانات الشخصية/);
+  assert.match(english, /Registered in the National Register for Personal Data Protection/);
+  for (const footer of [arabic, english]) {
+    assert.match(footer, /3260008515/);
+    assert.equal(footer.includes(`href="${verificationUrl}"`), true);
+    assert.match(footer, /target="_blank" rel="noopener noreferrer"/);
+    assert.match(footer, /السجل التجاري: 7050191290|Commercial Registration: 7050191290/);
+    assert.match(footer, /heavyar\.official@gmail\.com/);
+    assert.match(footer, /\/privacy/);
+    assert.match(footer, /\/terms/);
+    assert.match(footer, /\/account-deletion/);
+    assert.match(footer, /© 2026 Heavyar/);
+    assert.doesNotMatch(footer, /SDAIA certified|fully PDPL certified|معتمد من سدايا|شهادة امتثال من سدايا/i);
+  }
 });
 
 test('all required legal routes are available in Arabic and English', async () => {
