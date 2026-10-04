@@ -1,4 +1,5 @@
 import { fallbackPayload, FALLBACK_REASON } from './fallback.mjs';
+import { fetchWithDeadline } from './deadline.mjs';
 
 export const SEO_ENDPOINT = 'https://heavyar-api.heavyar-official.workers.dev/api/seo/published';
 export const PAGE_KEYS = ['home', 'about', 'equipment', 'drivers', 'help', 'privacy', 'terms', 'account-deletion', 'early-access'];
@@ -140,15 +141,13 @@ export function validatePublishedPayload(raw) {
   };
 }
 
-export async function getSeo(fetcher = fetch, now = Date.now()) {
+export async function getSeo(fetcher = fetch, now = Date.now(), timeoutMs = 2_000) {
   if (state.payload && now < state.expires) return { payload: state.payload, source: state.source };
   if (state.pending) return state.pending;
   state.pending = (async () => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(new Error('SEO_TIMEOUT')), 2_000);
     try {
       const headers = state.etag ? { 'If-None-Match': state.etag } : {};
-      const response = await fetcher(SEO_ENDPOINT, { headers, signal: controller.signal });
+      const response = await fetchWithDeadline(fetcher, SEO_ENDPOINT, { headers }, timeoutMs, 'SEO');
       if (response.status === 304 && state.payload && ['published', 'stale-published'].includes(state.source)) {
         state.expires = now + 60_000;
         state.source = 'published';
@@ -177,7 +176,6 @@ export async function getSeo(fetcher = fetch, now = Date.now()) {
       state.payload = conservative; state.etag = null; state.expires = now + 5_000; state.source = 'unavailable-fallback';
       return { payload: state.payload, source: state.source, error };
     } finally {
-      clearTimeout(timeout);
       state.pending = null;
     }
   })();

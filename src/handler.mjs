@@ -3,6 +3,7 @@ import { getSeo, LEGACY_ROUTES, pageFor, renderHead, robotsTxt, ROUTES, sitemapX
 import { FALLBACK_REASON } from './fallback.mjs';
 import { legacySource, renderLegacy, renderPreservedBody } from './legacy.mjs';
 import { hasLegalPage, renderLegalPage } from './legal-pages.mjs';
+import { fetchWithDeadline } from './deadline.mjs';
 
 const API_ORIGIN = 'https://heavyar-api.heavyar-official.workers.dev';
 const API_RULES = {
@@ -107,20 +108,15 @@ async function proxyApi(request, pathname, fetcher) {
 }
 
 async function getEarlyAccessEnabled(fetcher, timeoutMs = 1500) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetcher(EARLY_ACCESS_CONFIG_URL, {
+    const response = await fetchWithDeadline(fetcher, EARLY_ACCESS_CONFIG_URL, {
       headers: { Accept: 'application/json' },
-      signal: controller.signal,
-    });
+    }, timeoutMs, 'Early Access');
     if (!response.ok) return false;
     const payload = await response.json();
     return payload?.enabled === true;
   } catch {
     return false;
-  } finally {
-    clearTimeout(timer);
   }
 }
 
@@ -179,7 +175,7 @@ export async function handleRequest(request, env = {}, options = {}) {
     const fetcher = options.fetcher || fetch;
     const isEarlyAccessSurface = key === 'home' || key === 'early-access';
     const [{ payload, source }, earlyAccessEnabled] = await Promise.all([
-      getSeo(fetcher),
+      getSeo(fetcher, Date.now(), options.seoTimeoutMs),
       isEarlyAccessSurface ? getEarlyAccessEnabled(fetcher, options.earlyAccessTimeoutMs) : false,
     ]);
     const page = pageFor(payload, key, locale);
