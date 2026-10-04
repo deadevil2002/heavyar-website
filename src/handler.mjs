@@ -1,16 +1,14 @@
 import { renderHome, renderSiteFooter, renderSiteHeader, renderSiteScripts } from './site.mjs';
-import { getSeo, LEGACY_ROUTES, pageFor, renderHead, robotsTxt, ROUTES, sitemapXml, escapeHtml } from './seo.mjs';
+import { getSeo, getSeoSnapshot, LEGACY_ROUTES, pageFor, renderHead, robotsTxt, ROUTES, sitemapXml, escapeHtml } from './seo.mjs';
 import { FALLBACK_REASON } from './fallback.mjs';
 import { renderPreservedBody } from './legacy.mjs';
 import { hasLegalPage, renderLegalPage } from './legal-pages.mjs';
-import { fetchWithDeadline } from './deadline.mjs';
 
 const API_ORIGIN = 'https://heavyar-api.heavyar-official.workers.dev';
 const API_RULES = {
   '/api/early-access/config': ['GET', 'HEAD'],
   '/api/early-access/register': ['POST'],
 };
-const EARLY_ACCESS_CONFIG_URL = `${API_ORIGIN}/api/early-access/config`;
 const STATIC_FILES = new Set([
   '/styles.css', '/script.js', '/site.webmanifest',
   '/favicon.ico',
@@ -29,6 +27,8 @@ const securityHeaders = {
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   'X-Frame-Options': 'DENY',
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'X-XSS-Protection': '0',
 };
 function pageSecurityHeaders(development = false) {
   if (!development) return securityHeaders;
@@ -44,6 +44,21 @@ function typographyHead(locale) {
     ? 'IBM+Plex+Sans+Arabic:wght@400;500;600;700'
     : 'IBM+Plex+Sans:wght@400;500;600;700';
   return `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${family}&amp;display=swap">`;
+}
+
+function secureResponse(request, response, development = false) {
+  const headers = new Headers(response.headers);
+  headers.set('X-Content-Type-Options', 'nosniff');
+  const url = new URL(request.url);
+  if (!development && url.protocol === 'https:') {
+    // Intentionally omit includeSubDomains and preload: the public DNS
+    // namespace cannot be proven exhaustively safe from repository state.
+    headers.set('Strict-Transport-Security', 'max-age=31536000');
+  }
+  if ((headers.get('Content-Type') || '').toLowerCase().startsWith('text/html')) {
+    for (const [name, value] of Object.entries(pageSecurityHeaders(development))) headers.set(name, value);
+  }
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
 function shell(locale, head, body, key) {
@@ -150,20 +165,13 @@ async function proxyApi(request, pathname, fetcher) {
   return new Response(null, { status: response.status, headers: response.headers });
 }
 
-async function getEarlyAccessEnabled(fetcher, timeoutMs = 1500) {
-  try {
-    const response = await fetchWithDeadline(fetcher, EARLY_ACCESS_CONFIG_URL, {
-      headers: { Accept: 'application/json' },
-    }, timeoutMs, 'Early Access');
-    if (!response.ok) return false;
-    const payload = await response.json();
-    return payload?.enabled === true;
-  } catch {
-    return false;
-  }
+function refreshSeoInBackground(fetcher, options) {
+  const task = getSeo(fetcher, Date.now(), options.seoTimeoutMs).catch(() => undefined);
+  const waitUntil = options.executionContext?.waitUntil?.bind(options.executionContext) || options.waitUntil;
+  if (waitUntil) waitUntil(task);
 }
 
-export async function handleRequest(request, env = {}, options = {}) {
+async function routeRequest(request, env = {}, options = {}) {
   const url = new URL(request.url);
   const basePath = options.basePath || '';
   let pathname = url.pathname;
@@ -217,29 +225,28 @@ export async function handleRequest(request, env = {}, options = {}) {
     const [key, locale] = route;
     const fetcher = options.fetcher || fetch;
     const isEarlyAccessSurface = key === 'home' || key === 'early-access';
-    const [{ payload, source }, earlyAccessEnabled] = await Promise.all([
-      getSeo(fetcher, Date.now(), options.seoTimeoutMs),
-      isEarlyAccessSurface ? getEarlyAccessEnabled(fetcher, options.earlyAccessTimeoutMs) : false,
-    ]);
+    const { payload, source } = getSeoSnapshot();
+    refreshSeoInBackground(fetcher, options);
     const page = pageFor(payload, key, locale);
     const hasPublishedLocale = payload.pages.some(candidate => candidate.key === key && candidate.locale === locale);
     let body;
     if (isEarlyAccessSurface) {
-      body = renderHome({ locale, faqs: page.faqs, earlyAccessEnabled });
+      body = renderHome({ locale, faqs: page.faqs });
       if (hasPublishedLocale && ['published', 'stale-published'].includes(source)) {
         body = body.replace(/(<h1 class="hero-title">)[\s\S]*?(<\/h1>)/, `$1${escapeHtml(page.heading)}$2`);
       }
     }
     else if (key === 'account-deletion') body = brandedPage(locale, key, accountDeletionInformation(locale));
     else body = brandedPage(locale, key, routeBody(key, locale, page));
-    const extraHead = isEarlyAccessSurface ? '' : '<link rel="stylesheet" href="/assets/site.css">';
+    const heroPreload = '<link rel="preload" as="image" href="/assets/images/hero-768.avif" imagesrcset="/assets/images/hero-480.avif 480w, /assets/images/hero-768.avif 768w, /assets/images/hero-1024.avif 1024w" imagesizes="(max-width: 560px) calc(100vw - 38px), (max-width: 820px) calc(100vw - 52px), 52vw" type="image/avif" fetchpriority="high">';
+    const extraHead = isEarlyAccessSurface ? heroPreload : '<link rel="stylesheet" href="/assets/site.css">';
     const apiBase = basePath || API_ORIGIN;
     const integrationHead = `<meta name="heavyar-api-base" content="${escapeHtml(apiBase)}">`;
     const html = devRewrite(shell(locale, `${renderHead(page, payload.global)}${extraHead}${integrationHead}`, body, key), basePath);
     const seoSource = ['published', 'stale-published'].includes(source)
       ? (hasPublishedLocale ? source : 'published-missing-locale-noindex-fallback')
       : source === FALLBACK_REASON ? 'audited-fallback' : 'unavailable-fallback';
-    const cacheControl = isEarlyAccessSurface ? 'no-store' : 'public, max-age=60';
+    const cacheControl = isEarlyAccessSurface ? 'public, max-age=0, s-maxage=60, stale-while-revalidate=300' : 'public, max-age=60';
     return text(request.method === 'HEAD' ? null : html, 200, 'text/html; charset=utf-8', { ...pageSecurityHeaders(Boolean(basePath)), 'Cache-Control': cacheControl, 'X-Robots-Tag': page.robots, 'X-SEO-Source': seoSource });
   }
   // Repository-root Pages deployments must never expose implementation, Git,
@@ -249,7 +256,7 @@ export async function handleRequest(request, env = {}, options = {}) {
   if (safeStatic && env.ASSETS?.fetch) {
     const assetRequest = assetPath === pathname ? request : new Request(new URL(assetPath, request.url), request);
     const response = await env.ASSETS.fetch(assetRequest);
-    return new Response(request.method === 'HEAD' ? null : response.body, { status: response.status, headers: { ...Object.fromEntries(response.headers), ...securityHeaders } });
+    return new Response(request.method === 'HEAD' ? null : response.body, { status: response.status, headers: response.headers });
   }
   if (safeStatic && options.asset) {
     const response = await options.asset(assetPath, request);
@@ -258,4 +265,8 @@ export async function handleRequest(request, env = {}, options = {}) {
   const locale = pathname === '/en' || pathname.startsWith('/en/') ? 'en' : 'ar-SA';
   const head = `<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>404 | Heavyar</title><meta name="robots" content="noindex,nofollow"><link rel="stylesheet" href="/assets/site.css">`;
   return text(request.method === 'HEAD' ? null : devRewrite(shell(locale, head, notFound(locale), '404'), basePath), 404, 'text/html; charset=utf-8', pageSecurityHeaders(Boolean(basePath)));
+}
+
+export async function handleRequest(request, env = {}, options = {}) {
+  return secureResponse(request, await routeRequest(request, env, options), Boolean(options.basePath));
 }

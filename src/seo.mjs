@@ -182,6 +182,20 @@ export async function getSeo(fetcher = fetch, now = Date.now(), timeoutMs = 2_00
   return state.pending;
 }
 
+// Rendering must never wait on the optional published-SEO service. A request
+// gets the last validated value already held by this isolate, or the audited
+// repository baseline on a cold isolate. getSeo() remains the only mutating
+// refresh path and keeps its validator, deadline, ETag, and stale-good rules.
+export function getSeoSnapshot() {
+  if (state.payload && ['published', 'stale-published'].includes(state.source)) {
+    return { payload: state.payload, source: state.source };
+  }
+  if (state.payload && state.source === FALLBACK_REASON) {
+    return { payload: state.payload, source: state.source };
+  }
+  return { payload: fallbackPayload(), source: FALLBACK_REASON };
+}
+
 export function resetSeoCache() {
   state.payload = null; state.etag = null; state.expires = 0; state.pending = null; state.source = 'fallback';
 }

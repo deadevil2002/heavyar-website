@@ -97,30 +97,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const eaSection = document.querySelector('[data-early-access-section]');
   
   if (eaSection) {
+    const setEarlyAccessState = (enabled) => {
+      const form = eaSection.querySelector('[data-ea-form]');
+      eaSection.setAttribute('data-ea-state', enabled ? 'enabled' : 'disabled');
+      if (form) {
+        form.toggleAttribute('inert', !enabled);
+        form.setAttribute('aria-hidden', String(!enabled));
+      }
+    };
     fetch(`${apiBase}/api/early-access/config`)
       .then(res => {
         if (!res.ok) throw new Error('Not OK');
         return res.json();
       })
       .then(data => {
-        if (data && data.enabled === true) {
-          const form = eaSection.querySelector('[data-ea-form]');
-          const closed = eaSection.querySelector('[data-ea-closed-message]');
-          if (form) form.style.display = '';
-          if (closed) closed.style.display = 'none';
-        } else {
-          const form = eaSection.querySelector('[data-ea-form]');
-          const closed = eaSection.querySelector('[data-ea-closed-message]');
-          if (form) form.style.display = 'none';
-          if (closed) closed.style.display = 'block';
-        }
+        setEarlyAccessState(data && data.enabled === true);
       })
       .catch(() => {
         // Fail closed for submission while keeping the conversion destination visible.
-        const form = eaSection.querySelector('[data-ea-form]');
-        const closed = eaSection.querySelector('[data-ea-closed-message]');
-        if (form) form.style.display = 'none';
-        if (closed) closed.style.display = 'block';
+        setEarlyAccessState(false);
       });
   }
 
@@ -176,9 +171,10 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .catch((err) => {
         if (err.status === 403) {
-          form.style.display = 'none';
+          form.toggleAttribute('inert', true);
+          form.setAttribute('aria-hidden', 'true');
+          eaSection?.setAttribute('data-ea-state', 'disabled');
           if (closedMsg) {
-            closedMsg.style.display = 'block';
             closedMsg.setAttribute('aria-live', 'assertive');
           }
         } else if (err.status === 400) {

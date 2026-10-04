@@ -142,46 +142,29 @@ test('dedicated Early Access route keeps conversion visible while submission fai
   assert.equal(response.headers.get('x-robots-tag'), 'noindex,follow');
   assert.match(html, /name="heavyar-api-base" content="https:\/\/heavyar-api\.heavyar-official\.workers\.dev"/);
   assert.match(html, /data-ea-form/);
-  assert.match(html, /data-early-access-section data-ea-initial-enabled="false"/);
-  assert.match(html, /data-ea-form style="display:none;"/);
+  assert.match(html, /data-early-access-section data-ea-state="pending"/);
+  assert.match(html, /data-ea-form aria-hidden="true" inert/);
+  assert.match(html, /data-ea-loading/);
   assert.match(html, /data-ea-closed-message\s+class="ea-status error text-center"/);
   assert.match(html, />Get Early Access</);
 });
 
-test('initial Early Access render follows authoritative config without a closed-state flash', async () => {
-  for (const [enabled, initial, formHidden, closedHidden] of [
-    [true, 'true', false, true],
-    [false, 'false', true, false],
-  ]) {
-    resetSeoCache();
-    const fetcher = async url => {
-      if (String(url).endsWith('/api/early-access/config')) return Response.json({ enabled });
-      return Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
-    };
-    const response = await handleRequest(new Request(`https://heavyar.com/?enabled=${enabled}`), {}, { fetcher });
-    const html = await response.text();
-    assert.equal(response.headers.get('cache-control'), 'no-store');
-    assert.match(html, new RegExp(`data-ea-initial-enabled="${initial}"`));
-    assert.equal(/data-ea-form style="display:none;"/.test(html), formHidden);
-    assert.equal(/data-ea-closed-message style="display:none;"/.test(html), closedHidden);
-  }
-});
-
-test('initial Early Access render fails closed when config retrieval fails or is malformed', async () => {
-  for (const configResponse of [
-    new Response('unavailable', { status: 503 }),
-    Response.json({ enabled: 'true' }),
-  ]) {
-    resetSeoCache();
-    const fetcher = async url => {
-      if (String(url).endsWith('/api/early-access/config')) return configResponse.clone();
-      return Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
-    };
-    const html = await (await handleRequest(new Request('https://heavyar.com/'), {}, { fetcher })).text();
-    assert.match(html, /data-ea-initial-enabled="false"/);
-    assert.match(html, /data-ea-form style="display:none;"/);
-    assert.doesNotMatch(html, /data-ea-closed-message style="display:none;"/);
-  }
+test('initial Early Access render is stable and defers authority to one client hydration', async () => {
+  resetSeoCache();
+  let configCalls = 0;
+  const response = await handleRequest(new Request('https://heavyar.com/'), {}, { fetcher: async url => {
+    if (String(url).endsWith('/api/early-access/config')) configCalls += 1;
+    return Response.json({ errorCode: 'SEO_NOT_PUBLISHED' }, { status: 404 });
+  } });
+  const html = await response.text();
+  const js = await readFile(new URL('../assets/site.js', import.meta.url), 'utf8');
+  assert.equal(configCalls, 0);
+  assert.equal(response.headers.get('cache-control'), 'public, max-age=0, s-maxage=60, stale-while-revalidate=300');
+  assert.match(html, /data-ea-state="pending"/);
+  assert.match(html, /data-ea-form aria-hidden="true" inert/);
+  assert.match(html, /data-ea-loading/);
+  assert.equal((js.match(/\/api\/early-access\/config/g) || []).length, 1);
+  assert.match(js, /setEarlyAccessState\(false\)/);
 });
 
 test('landing keeps Early Access as a primary conversion without bypassing config', async () => {
@@ -191,8 +174,8 @@ test('landing keeps Early Access as a primary conversion without bypassing confi
     const html = await (await handleRequest(new Request(`https://heavyar.com${path}`), {}, { fetcher: unpublished })).text();
     assert.match(html, /class="nav-cta" data-early-access-cta/);
     assert.match(html, new RegExp(`>${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}<`));
-    assert.match(html, /id="early-access"[^>]*data-early-access-section data-ea-initial-enabled="false"/);
-    assert.match(html, /data-ea-form style="display:none;"/);
+    assert.match(html, /id="early-access"[^>]*data-early-access-section data-ea-state="pending"/);
+    assert.match(html, /data-ea-form aria-hidden="true" inert/);
     assert.doesNotMatch(html, /data-early-access-section[^>]*style="display:none;"/);
   }
 });
@@ -318,9 +301,15 @@ test('CMS heading is rendered on home and content routes while legal H1 remains 
   raw.pages.find(page => page.key === 'home' && page.locale === 'en').heading = 'Configured home heading';
   raw.pages.find(page => page.key === 'equipment' && page.locale === 'en').heading = 'Configured equipment heading';
   resetSeoCache();
-  const options = { fetcher: async () => new Response(JSON.stringify(raw)) };
+  let background = [];
+  const options = { fetcher: async () => new Response(JSON.stringify(raw)), waitUntil: task => background.push(task) };
+  await handleRequest(new Request('https://heavyar.com/en/'), {}, options);
+  await Promise.all(background);
   assert.match(await (await handleRequest(new Request('https://heavyar.com/en/'), {}, options)).text(), /<h1 class="hero-title">Configured home heading<\/h1>/);
   resetSeoCache();
+  background = [];
+  await handleRequest(new Request('https://heavyar.com/en/equipment'), {}, options);
+  await Promise.all(background);
   assert.match(await (await handleRequest(new Request('https://heavyar.com/en/equipment'), {}, options)).text(), /<h1>Configured equipment heading<\/h1>/);
   resetSeoCache();
   const legalOptions = { ...options, legacyLoader: file => readFile(new URL(`../${file}`, import.meta.url), 'utf8') };
@@ -395,7 +384,8 @@ test('landing pages use the official Saudi Business seal without the legacy stat
     assert.doesNotMatch(html, /class="language-route"/);
     assert.match(html, /class="nav-lang-icon"/);
     assert.match(html, /src="\/assets\/seal-lifecycle\.js"/);
-    assert.ok(html.indexOf('/assets/seal-lifecycle.js') < html.indexOf('https://eauthenticate.saudibusiness.gov.sa/EAuthSealApi/seal.js'));
+    assert.match(html, /src="\/assets\/seal-loader\.js"/);
+    assert.ok(html.indexOf('/assets/seal-lifecycle.js') < html.indexOf('/assets/seal-loader.js'));
     const csp = response.headers.get('content-security-policy');
     assert.match(csp, /script-src[^;]*https:\/\/eauthenticate\.saudibusiness\.gov\.sa/);
     assert.doesNotMatch(csp, /script-src[^;]*(?:\*|'unsafe-eval')/);
@@ -404,6 +394,10 @@ test('landing pages use the official Saudi Business seal without the legacy stat
       'frame-src https://heavyar-app.firebaseapp.com https://eauthenticate.saudibusiness.gov.sa',
     );
   }
+  const loader = await readFile(new URL('../assets/seal-loader.js', import.meta.url), 'utf8');
+  assert.match(loader, /https:\/\/eauthenticate\.saudibusiness\.gov\.sa\/EAuthSealApi\/seal\.js/);
+  assert.match(loader, /requestIdleCallback/);
+  assert.match(loader, /addEventListener\('load'/);
 });
 
 test('language control is singular, localized, and keeps locale routes and direction', async () => {

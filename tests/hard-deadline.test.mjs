@@ -88,19 +88,25 @@ test('homepage returns 200 when only SEO never settles', async () => {
     : Response.json({ enabled: true });
   const response = await withinGuard(handleRequest(new Request('https://heavyar.com/'), {}, requestOptions(fetcher)), 'SEO-stalled home');
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get('x-seo-source'), 'unavailable-fallback');
+  assert.equal(response.headers.get('x-seo-source'), 'audited-fallback');
 });
 
-test('homepage returns 200 with Early Access disabled when only config never settles', async () => {
+test('homepage never calls Early Access config before returning pending hydration HTML', async () => {
   resetSeoCache();
-  const fetcher = async url => String(url).endsWith('/api/early-access/config')
-    ? new Promise(() => {})
-    : unpublished();
+  let configCalls = 0;
+  const fetcher = async url => {
+    if (String(url).endsWith('/api/early-access/config')) {
+      configCalls += 1;
+      return new Promise(() => {});
+    }
+    return unpublished();
+  };
   const response = await withinGuard(handleRequest(new Request('https://heavyar.com/'), {}, requestOptions(fetcher)), 'Early-Access-stalled home');
   const html = await response.text();
   assert.equal(response.status, 200);
-  assert.match(html, /data-ea-initial-enabled="false"/);
-  assert.match(html, /data-ea-form style="display:none;"/);
+  assert.equal(configCalls, 0);
+  assert.match(html, /data-ea-state="pending"/);
+  assert.match(html, /data-ea-form aria-hidden="true" inert/);
 });
 
 test('homepage returns 200 when both upstream fetches never settle', async () => {
@@ -117,16 +123,20 @@ for (const path of ['/support', '/help']) {
   });
 }
 
-test('normal fast published SEO and enabled Early Access behavior is unchanged', async () => {
+test('published SEO refreshes after the non-blocking first render', async () => {
   resetSeoCache();
+  const background = [];
   const fetcher = async url => String(url).endsWith('/api/seo/published')
     ? Response.json(fallbackPayload(), { headers: { ETag: '"published-fixture"' } })
     : Response.json({ enabled: true });
-  const response = await withinGuard(handleRequest(new Request('https://heavyar.com/'), {}, requestOptions(fetcher)), 'healthy home');
-  const html = await response.text();
-  assert.equal(response.status, 200);
-  assert.equal(response.headers.get('x-seo-source'), 'published');
-  assert.match(html, /data-ea-initial-enabled="true"/);
+  const options = { ...requestOptions(fetcher), waitUntil: task => background.push(task) };
+  const first = await withinGuard(handleRequest(new Request('https://heavyar.com/'), {}, options), 'healthy home');
+  assert.equal(first.status, 200);
+  assert.equal(first.headers.get('x-seo-source'), 'audited-fallback');
+  assert.match(await first.text(), /data-ea-state="pending"/);
+  await Promise.all(background);
+  const refreshed = await handleRequest(new Request('https://heavyar.com/'), {}, options);
+  assert.equal(refreshed.headers.get('x-seo-source'), 'published');
 });
 
 test('SEO_NOT_PUBLISHED retains the audited fallback behavior', async () => {
