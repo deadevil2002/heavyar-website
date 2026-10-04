@@ -507,7 +507,9 @@ test('all required legal routes are available in Arabic and English', async () =
 test('legal policies preserve compliance guardrails and approved V1 cancellation rules', async () => {
   const refund = await (await handleRequest(new Request('https://heavyar.com/en/refund-policy'))).text();
   assert.doesNotMatch(refund, /OWNER DECISION REQUIRED/);
-  assert.match(refund, /does not promise guaranteed or instant refunds/i);
+  assert.match(refund, /documented refund-case process/i);
+  assert.match(refund, /automated execution is disabled/i);
+  assert.match(refund, /no guaranteed or instant refund is promised/i);
   assert.match(refund, /free of charge after provider acceptance and before payment/i);
   assert.match(refund, /no automatic fixed refund percentage/i);
   const verification = await (await handleRequest(new Request('https://heavyar.com/en/verification'))).text();

@@ -33,8 +33,9 @@ test('commercial and payment facts cannot drift into future-state claims', () =>
   assert.match(terms, /Returning from checkout does not prove success/i);
   assert.match(terms, /Tap Marketplace or Split is not currently enabled or verified/i);
   assert.match(provider, /Tap Marketplace or Split is not enabled or verified/i);
-  assert.match(refund, /not automated or operationally complete/i);
-  assert.match(refund, /does not promise guaranteed or instant refunds/i);
+  assert.match(refund, /documented refund-case process/i);
+  assert.match(refund, /automated execution is disabled/i);
+  assert.match(refund, /no guaranteed or instant refund is promised/i);
 });
 
 test('privacy and verification preserve current iOS collection boundaries', () => {

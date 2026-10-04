@@ -1,6 +1,6 @@
 # Heavyar legal source register
 
-Internal research record only. It is not legal advice and is not a substitute for review by qualified Saudi counsel.
+This register records the official authorities used for the owner-approved current-release decisions. Where a source does not establish a capability clearly, Heavyar adopts the safer disabled or fail-closed behavior and records the activation trigger.
 
 Access date for every source below: **2026-10-04**.
 
@@ -16,7 +16,7 @@ Access date for every source below: **2026-10-04**.
 | [Personal Data Transfer Regulation](https://dgp.sdaia.gov.sa/wps/portal/pdp/knowledgecenter/details/RegulationonPersonalDataTransferOutsidetheKingdom) | SDAIA | Necessity, safeguards, adequacy, risk and minimization for transfers outside Saudi Arabia. |
 | [Electronic Transactions Law](https://laws.boe.gov.sa/BoeLaws/Laws/LawDetails/6f509360-2c39-4358-ae2a-a9a700f2ed16/1) | Bureau of Experts at the Council of Ministers | Electronic records, notices, consent and transaction validity. |
 | [VAT Implementing Regulations](https://zatca.gov.sa/ar/RulesRegulations/Taxes/Pages/VATImplementingRegulations.aspx) | ZATCA | Tax wording and avoidance of unsupported tax conclusions. |
-| [E-invoicing guidelines](https://zatca.gov.sa/ar/E-Invoicing/Introduction/Guidelines/Pages/default.aspx) | ZATCA | Invoicing context and the need for accounting confirmation before making compliance claims. |
+| [E-invoicing guidelines](https://zatca.gov.sa/ar/E-Invoicing/Introduction/Guidelines/Pages/default.aspx) | ZATCA | Invoicing context; the current release makes no FATOORA or ZATCA-clearance claim and keeps future activation evidence-gated. |
 
 ## Drafting constraints recorded
 
