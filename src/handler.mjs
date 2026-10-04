@@ -177,7 +177,7 @@ export async function handleRequest(request, env = {}, options = {}) {
   }
   if (!['GET', 'HEAD'].includes(request.method)) return text('Method not allowed', 405, 'text/plain; charset=utf-8', { Allow: 'GET, HEAD' });
   const legalPathname = ({ '/privacy-policy': '/privacy', '/en/privacy-policy': '/en/privacy', '/terms-of-service': '/terms', '/en/terms-of-service': '/en/terms' })[pathname] || pathname;
-  const legalMatch = legalPathname.match(/^\/(en\/)?(terms|privacy|refund-policy|disputes|provider-terms|verification|restricted-activities)\/?$/);
+  const legalMatch = legalPathname.match(/^\/(en\/)?(terms|privacy|refund-policy|disputes|provider-terms|driver-terms|verification|restricted-activities|acceptable-use)\/?$/);
   if (legalMatch && hasLegalPage(legalMatch[2])) {
     const locale = legalMatch[1] ? 'en' : 'ar-SA';
     const body = brandedPage(locale, legalMatch[2], renderLegalPage(legalMatch[2], locale === 'en' ? 'en' : 'ar'));

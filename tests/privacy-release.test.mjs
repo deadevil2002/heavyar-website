@@ -4,15 +4,15 @@ import { renderLegalPage } from '../src/legal-pages.mjs';
 
 test('public privacy policy matches the current iOS collection boundary', () => {
   const english = renderLegalPage('privacy', 'en');
-  assert.match(english, /does not request a national-ID or passport number/i);
-  assert.match(english, /bank-account number, IBAN, or payout-bank details/i);
-  assert.match(english, /Tap&#39;s hosted experience/i);
-  assert.match(english, /does not store card numbers or CVV/i);
+  assert.match(english, /National ID, passport or government identity document/i);
+  assert.match(english, /Bank-account number, IBAN or payout-bank details/i);
+  assert.match(english, /Tap in a hosted flow/i);
+  assert.match(english, /does not store the full card number or CVV/i);
   assert.match(english, /commercial-registration number/i);
   assert.doesNotMatch(english, /We may process identity, contact, profile/i);
 
   const arabic = renderLegalPage('privacy', 'ar-SA');
-  assert.match(arabic, /لا يطلب إصدار iOS الحالي رقم هوية وطنية/);
+  assert.match(arabic, /هوية وطنية أو جواز سفر أو مستند هوية حكومي/);
   assert.match(arabic, /رقم حساب بنكي أو IBAN/);
-  assert.match(arabic, /لا تخزن Heavyar رقم البطاقة أو رمز CVV/);
+  assert.match(arabic, /لا تخزن Heavyar رقم البطاقة الكامل أو CVV/);
 });
