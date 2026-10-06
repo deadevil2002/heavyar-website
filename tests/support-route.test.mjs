@@ -48,11 +48,11 @@ test('Support Center exposes role help, safety, policies, and FAQ without collec
   const pages = [
     {
       path: '/support',
-      required: ['دعم Heavyar', 'تواصل معنا', 'الحساب وتسجيل الدخول', 'المعدات وطلبات التأجير', 'مقدمو المعدات', 'السائقون والمشغلون', 'الدفع والإلغاء والاسترجاع', 'الخصوصية وإدارة الحساب', 'حذف الحساب', 'السلامة والإبلاغ عن مشكلة', 'الملاحظات واقتراحات التطوير', 'الأسئلة الشائعة'],
+      required: ['دعم Heavyar', 'تواصل معنا', 'الحساب وتسجيل الدخول', 'المعدات وطلبات التأجير', 'مقدمو المعدات', 'السائقون والمشغلون', 'الدفع والإلغاء والاسترجاع', 'الخصوصية وإدارة الحساب', 'حذف الحساب', 'السلامة والإبلاغ عن مشكلة', 'الملاحظات واقتراحات التطوير', 'الأسئلة الشائعة', 'رقم الدعم', '+966570758881', 'العنوان التجاري', 'الجبيل 35513'],
     },
     {
       path: '/en/support',
-      required: ['Heavyar Support', 'Contact us', 'Account &amp; sign-in', 'Equipment &amp; rental requests', 'Equipment providers', 'Drivers &amp; operators', 'Payments, cancellations &amp; refunds', 'Privacy &amp; account management', 'Account Deletion', 'Safety &amp; reporting an issue', 'Feedback &amp; feature requests', 'Frequently asked questions'],
+      required: ['Heavyar Support', 'Contact us', 'Account &amp; sign-in', 'Equipment &amp; rental requests', 'Equipment providers', 'Drivers &amp; operators', 'Payments, cancellations &amp; refunds', 'Privacy &amp; account management', 'Account Deletion', 'Safety &amp; reporting an issue', 'Feedback &amp; feature requests', 'Frequently asked questions', 'Support phone', '+966570758881', 'Business address', 'Jubail 35513, Saudi Arabia'],
     },
   ];
   for (const page of pages) {
@@ -67,6 +67,7 @@ test('Support Center exposes role help, safety, policies, and FAQ without collec
     assert.doesNotMatch(html, /<input\b/i);
     assert.doesNotMatch(html, /<form\b/i);
     assert.doesNotMatch(html, /name=["'](?:password|otp|cvv|card|governmentId|nationalId|iban)["']/i);
+    assert.match(html, /href="tel:\+966570758881"/);
     assert.match(html, /7050191290/);
     assert.match(html, /dgp\.sdaia\.gov\.sa/);
     assert.match(html, /class="sbc-verify-seal"/);
